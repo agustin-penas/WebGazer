@@ -17,6 +17,7 @@ webgazer.reg.RidgeWeightedReg = ridgeRegWeighted.RidgeWeightedReg;
 webgazer.reg.RidgeRegThreaded = ridgeRegThreaded.RidgeRegThreaded;
 webgazer.util = util;
 webgazer.params = params;
+webgazer.workerScriptURL = 'ridgeWorker.mjs';
 
 //PRIVATE VARIABLES
 
@@ -65,7 +66,7 @@ var curTrackerMap = {
 var regressionMap = {
   'ridge': function() { return new webgazer.reg.RidgeReg(); },
   'weightedRidge': function() { return new webgazer.reg.RidgeWeightedReg(); },
-  'threadedRidge': function() { return new webgazer.reg.RidgeRegThreaded(); },
+  'threadedRidge': function() { return new webgazer.reg.RidgeRegThreaded(webgazer.workerScriptURL); },
 };
 
 //localstorage name

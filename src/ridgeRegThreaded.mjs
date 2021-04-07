@@ -23,7 +23,7 @@ reg.RidgeRegThreaded = function() {
 /**
  * Initialize new arrays and initialize Kalman filter.
  */
-reg.RidgeRegThreaded.prototype.init = function() {
+reg.RidgeRegThreaded.prototype.init = function(workerScriptURL) {
     this.screenXClicksArray = new util.DataWindow(dataWindow);
     this.screenYClicksArray = new util.DataWindow(dataWindow);
     this.eyeFeaturesClicks = new util.DataWindow(dataWindow);
@@ -37,7 +37,8 @@ reg.RidgeRegThreaded.prototype.init = function() {
 
     // Place the src/ridgeworker.js file into the same directory as your html file.
     if (!this.worker) {
-        this.worker = new Worker('ridgeWorker.mjs'); // [20200708] TODO: Figure out how to make this inline
+        //this.worker = new Worker('ridgeWorker.mjs'); // [20200708] TODO: Figure out how to make this inline
+        this.worker = new Worker(workerScriptURL);
         this.worker.onerror = function(err) { console.log(err.message); };
         this.worker.onmessage = function(evt) {
             weights.X = evt.data.X;

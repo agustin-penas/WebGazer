@@ -80,7 +80,6 @@ var defaults = {
   'settings': {}
 };
 
-
 //PRIVATE FUNCTIONS
 
 /**
@@ -235,6 +234,7 @@ async function getPrediction(regModelIndex) {
   if(paused){
     paintCurrentFrame(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
   }
+  var time = performance.now();
 
   var predictions = [];
   // [20200617 xk] TODO: this call should be made async somehow. will take some work.
@@ -251,14 +251,16 @@ async function getPrediction(regModelIndex) {
     return predictions[regModelIndex] === null ? null : {
       'x' : predictions[regModelIndex].x,
       'y' : predictions[regModelIndex].y,
-      'eyeFeatures': latestEyeFeatures
+      'eyeFeatures': latestEyeFeatures,
+      't' : time
     };
   } else {
     return predictions.length === 0 || predictions[0] === null ? null : {
       'x' : predictions[0].x,
       'y' : predictions[0].y,
       'eyeFeatures': latestEyeFeatures,
-      'all' : predictions
+      'all' : predictions,
+      't' : time
     };
   }
 }

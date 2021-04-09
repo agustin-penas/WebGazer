@@ -17,6 +17,7 @@ webgazer.reg.RidgeWeightedReg = ridgeRegWeighted.RidgeWeightedReg;
 webgazer.reg.RidgeRegThreaded = ridgeRegThreaded.RidgeRegThreaded;
 webgazer.util = util;
 webgazer.params = params;
+webgazer.workerScriptURL = 'ridgeWorker.mjs';
 
 //PRIVATE VARIABLES
 
@@ -65,7 +66,7 @@ var curTrackerMap = {
 var regressionMap = {
   'ridge': function() { return new webgazer.reg.RidgeReg(); },
   'weightedRidge': function() { return new webgazer.reg.RidgeWeightedReg(); },
-  'threadedRidge': function() { return new webgazer.reg.RidgeRegThreaded(); },
+  'threadedRidge': function() { return new webgazer.reg.RidgeRegThreaded(webgazer.workerScriptURL); },
 };
 
 //localstorage name
@@ -78,7 +79,6 @@ var defaults = {
   'data': [],
   'settings': {}
 };
-
 
 //PRIVATE FUNCTIONS
 
@@ -229,6 +229,13 @@ function paintCurrentFrame(canvas, width, height) {
  * @returns {*}
  */
 async function getPrediction(regModelIndex) {
+  // this allows getPrediction to work even when webgazer is paused, since the only necessary
+  // component for getPrediction in loop() is paintCurrentFrame().
+  if(paused){
+    paintCurrentFrame(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
+  }
+  var time = performance.now();
+
   var predictions = [];
   // [20200617 xk] TODO: this call should be made async somehow. will take some work.
   latestEyeFeatures = await getPupilFeatures(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
@@ -244,14 +251,16 @@ async function getPrediction(regModelIndex) {
     return predictions[regModelIndex] === null ? null : {
       'x' : predictions[regModelIndex].x,
       'y' : predictions[regModelIndex].y,
-      'eyeFeatures': latestEyeFeatures
+      'eyeFeatures': latestEyeFeatures,
+      't' : time
     };
   } else {
     return predictions.length === 0 || predictions[0] === null ? null : {
       'x' : predictions[0].x,
       'y' : predictions[0].y,
       'eyeFeatures': latestEyeFeatures,
-      'all' : predictions
+      'all' : predictions,
+      't' : time
     };
   }
 }

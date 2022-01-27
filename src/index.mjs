@@ -477,7 +477,13 @@ function clearData() {
  * Initializes all needed dom elements and begins the loop
  * @param {URL} stream - The video stream to use
  */
-async function init(stream) {
+async function init(stream, options) {
+  options = options || {};
+  options.initializeMouseListeners =
+    options.initializeMouseListeners === undefined
+    ? true
+    : options.initializeMouseListeners;
+
   //////////////////////////
   // Video and video preview
   //////////////////////////
@@ -580,7 +586,9 @@ async function init(stream) {
     videoElement.addEventListener('timeupdate', setupPreviewVideo);
   });
 
-  addMouseEventListeners();
+  if (options.initializeMouseListeners) {
+    addMouseEventListeners();
+  }
 
   //BEGIN CALLBACK LOOP
   paused = false;
@@ -629,7 +637,7 @@ function setUserMediaVariable(){
  * @param {Function} onFail - Callback to call in case it is impossible to find user camera
  * @returns {*}
  */
-webgazer.begin = function(onFail) {
+webgazer.begin = function(onFail, initOptions) {
   if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.chrome){
     alert("WebGazer works only over https. If you are doing local development, you need to run a local server.");
   }
@@ -642,7 +650,7 @@ webgazer.begin = function(onFail) {
   onFail = onFail || function() {console.log('No stream')};
 
   if (debugVideoLoc) {
-    init(debugVideoLoc);
+    init(debugVideoLoc, initOptions);
     return webgazer;
   }
 
@@ -657,7 +665,7 @@ webgazer.begin = function(onFail) {
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia( webgazer.params.camConstraints );
-      await init(stream);
+      await init(stream, initOptions);
       resolve(webgazer);
     } catch(err) {
       onFail();

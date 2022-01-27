@@ -561,21 +561,24 @@ async function init(stream) {
   // Add other preview/feedback elements to the screen once the video has shown and its parameters are initialized
   videoContainerElement.appendChild(videoElement);
   document.body.appendChild(videoContainerElement);
-  function setupPreviewVideo(e) {
+  const videoPreviewSetup = new Promise((res) => {
+    function setupPreviewVideo(e) {
 
-    // All video preview parts have now been added, so set the size both internally and in the preview window.
-    setInternalVideoBufferSizes( videoElement.videoWidth, videoElement.videoHeight );
-    webgazer.setVideoViewerSize( webgazer.params.videoViewerWidth, webgazer.params.videoViewerHeight );
+      // All video preview parts have now been added, so set the size both internally and in the preview window.
+      setInternalVideoBufferSizes( videoElement.videoWidth, videoElement.videoHeight );
+      webgazer.setVideoViewerSize( webgazer.params.videoViewerWidth, webgazer.params.videoViewerHeight );
 
-    videoContainerElement.appendChild(videoElementCanvas);
-    videoContainerElement.appendChild(faceOverlay);
-    videoContainerElement.appendChild(faceFeedbackBox);
-    document.body.appendChild(gazeDot);
+      videoContainerElement.appendChild(videoElementCanvas);
+      videoContainerElement.appendChild(faceOverlay);
+      videoContainerElement.appendChild(faceFeedbackBox);
+      document.body.appendChild(gazeDot);
 
-    // Run this only once, so remove the event listener
-    e.target.removeEventListener(e.type, setupPreviewVideo);
-  };
-  videoElement.addEventListener('timeupdate', setupPreviewVideo);
+      // Run this only once, so remove the event listener
+      e.target.removeEventListener(e.type, setupPreviewVideo);
+      res();
+    };
+    videoElement.addEventListener('timeupdate', setupPreviewVideo);
+  });
 
   addMouseEventListeners();
 
@@ -584,6 +587,7 @@ async function init(stream) {
   clockStart = performance.now();
 
   await loop();
+  await videoPreviewSetup;
 }
 
 /**
@@ -653,7 +657,7 @@ webgazer.begin = function(onFail) {
     let stream;
     try {
       stream = await navigator.mediaDevices.getUserMedia( webgazer.params.camConstraints );
-      init(stream);
+      await init(stream);
       resolve(webgazer);
     } catch(err) {
       onFail();

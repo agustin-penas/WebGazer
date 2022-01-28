@@ -223,6 +223,16 @@ function paintCurrentFrame(canvas, width, height) {
   ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 }
 
+async function eyePatchesEmissionLoop() {
+  latestEyeFeatures = await getPupilFeatures(
+    videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height
+  );
+  document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
+    detail: latestEyeFeatures
+  }));
+  requestAnimationFrame(eyePatchesEmissionLoop);
+};
+
 /**
  * Paints the video to a canvas and runs the prediction pipeline to get a prediction
  * @param {Number|undefined} regModelIndex - The prediction index we're looking for
@@ -237,8 +247,6 @@ async function getPrediction(regModelIndex) {
   var time = performance.now();
 
   var predictions = [];
-  // [20200617 xk] TODO: this call should be made async somehow. will take some work.
-  latestEyeFeatures = await getPupilFeatures(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
 
   if (regs.length === 0) {
     console.log('regression not set, call setRegression()');
@@ -594,6 +602,7 @@ async function init(stream, options) {
   paused = false;
   clockStart = performance.now();
 
+  requestAnimationFrame(eyePatchesEmissionLoop);
   await loop();
   await videoPreviewSetup;
 }

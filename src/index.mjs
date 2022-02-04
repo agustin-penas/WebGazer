@@ -371,8 +371,10 @@ var recordScreenPosition = function(x, y, eventType) {
     return null;
   }
   for (var reg in regs) {
-    if( latestEyeFeatures )
+    if( latestEyeFeatures ) {
+      console.log(`mapping <${x}, ${y}> to gaze`)
       regs[reg].addData(latestEyeFeatures, [x, y], eventType);
+    }
   }
 };
 
@@ -477,6 +479,7 @@ function clearData() {
 
   // Removes data from regression model
   for (var reg in regs) {
+    console.log(`reinitializaing ${reg}-th regression model`)
     regs[reg].init();
   }
 }

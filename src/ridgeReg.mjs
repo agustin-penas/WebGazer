@@ -99,6 +99,9 @@ reg.RidgeReg.prototype.init = function() {
   this.eyeFeaturesTrail = new util.DataWindow(trailDataWindow);
   this.trailTimes = new util.DataWindow(trailDataWindow);
 
+  this.coefficientsX = null;
+  this.coefficientsY = null;
+
   this.dataClicks = new util.DataWindow(dataWindow);
   this.dataTrail = new util.DataWindow(trailDataWindow);
 
@@ -142,6 +145,11 @@ reg.RidgeReg.prototype.init = function() {
  * @param {Object} type - The type of performed action
  */
 reg.RidgeReg.prototype.addData = function(eyes, screenPos, type) {
+  if (this.coefficientsX !== null || this.coefficientsY !== null) {
+    throw new Error(
+      'Data can not be added after coefficients have been computed.'
+    );
+  }
   if (!eyes) {
     return;
   }
@@ -180,9 +188,15 @@ reg.RidgeReg.prototype.addData = function(eyes, screenPos, type) {
  * @returns {Object}
  */
 reg.RidgeReg.prototype.predict = function(eyesObj) {
+  if (!this.coefficientsX || !this.coefficientsY) {
+    // Ridge regression coefficients have not yet been computed
+    return null;
+  }
+
   if (!eyesObj || this.eyeFeaturesClicks.length === 0) {
     return null;
   }
+
   var acceptTime = performance.now() - this.trailTime;
   var trailX = [];
   var trailY = [];
@@ -195,21 +209,14 @@ reg.RidgeReg.prototype.predict = function(eyesObj) {
     }
   }
 
-  var screenXArray = this.screenXClicksArray.data.concat(trailX);
-  var screenYArray = this.screenYClicksArray.data.concat(trailY);
-  var eyeFeatures = this.eyeFeaturesClicks.data.concat(trailFeat);
-
-  var coefficientsX = ridge(screenXArray, eyeFeatures, ridgeParameter);
-  var coefficientsY = ridge(screenYArray, eyeFeatures, ridgeParameter);
-
   var eyeFeats = util.getEyeFeats(eyesObj);
   var predictedX = 0;
   for(var i=0; i< eyeFeats.length; i++){
-    predictedX += eyeFeats[i] * coefficientsX[i];
+    predictedX += eyeFeats[i] * this.coefficientsX[i];
   }
   var predictedY = 0;
   for(var i=0; i< eyeFeats.length; i++){
-    predictedY += eyeFeats[i] * coefficientsY[i];
+    predictedY += eyeFeats[i] * this.coefficientsY[i];
   }
 
   predictedX = Math.floor(predictedX);
@@ -257,6 +264,15 @@ reg.RidgeReg.prototype.setData = function(data) {
  */
 reg.RidgeReg.prototype.getData = function() {
   return this.dataClicks.data;
+}
+
+reg.RidgeReg.prototype.computeCoefficients = function() {
+  const screenXArray = this.screenXClicksArray.data;
+  const screenYArray = this.screenYClicksArray.data;
+  const eyeFeatures = this.eyeFeaturesClicks.data;
+
+  this.coefficientsX = ridge(screenXArray, eyeFeatures, ridgeParameter);
+  this.coefficientsY = ridge(screenYArray, eyeFeatures, ridgeParameter);
 }
 
 /**

@@ -372,7 +372,6 @@ var recordScreenPosition = function(x, y, eventType) {
   }
   for (var reg in regs) {
     if( latestEyeFeatures ) {
-      console.log(`mapping <${x}, ${y}> to gaze`)
       regs[reg].addData(latestEyeFeatures, [x, y], eventType);
     }
   }
@@ -1164,6 +1163,12 @@ webgazer.getVideoPreviewToCameraResolutionRatio = function() {
  */
 webgazer.getStoredPoints = function() {
   return [xPast50, yPast50];
+}
+
+webgazer.computeRegressionCoefficients = function() {
+  for (var reg in regs) {
+    regs[reg].computeCoefficients();
+  }
 }
 
 export default webgazer;

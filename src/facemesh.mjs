@@ -1,4 +1,6 @@
-import FacemeshModel from '@tensorflow-models/facemesh';
+import faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import tf from '@tensorflow/tfjs';
+
 /**
  * Constructor of TFFaceMesh object
  * @constructor
@@ -8,7 +10,10 @@ const TFFaceMesh = function() {
   //For recent laptops WASM is better than WebGL.
   //TODO: This hack makes loading the model block the UI. We should fix that
   // this.model = (async () => { return await facemesh.load({"maxFaces":1}) })();
-  this.model = FacemeshModel.load({"maxFaces":1});
+  this.model = faceLandmarksDetection.load(
+    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
+    { maxFaces: 1 }
+  );
   this.predictionReady = false;
 };
 
@@ -22,7 +27,7 @@ TFFaceMesh.prototype.positionsArray = null;
  * @param  {Number} height - of imageCanvas
  * @return {Object} the two eye-patches, first left, then right eye
  */
-TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) {
+TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, height) {
 
   if (imageCanvas.width === 0) {
     return null;
@@ -33,7 +38,12 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
 
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph.
-  const predictions = await model.estimateFaces(imageCanvas);
+  const predictions = await model.estimateFaces({
+      input: video,
+      returnTensors: false,
+      flipHorizontal: false,
+      predictIrises: false,
+    });
 
   if (predictions.length == 0){
     return false;
@@ -59,14 +69,15 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
 
   // Won't really cut off any parts of the eye, at the cost of warping the shape (i.e. height/
   // width ratio) of the bounding box.
-  var leftOriginX = Math.round(Math.min(positions[247][0], positions[130][0], positions[25][0]));
-  var leftOriginY = Math.round(Math.min(positions[247][1], positions[27][1], positions[190][1]));
-  var leftWidth = Math.round(Math.max(positions[190][0], positions[243][0], positions[233][0]) - leftOriginX);
-  var leftHeight = Math.round(Math.max(positions[25][1], positions[23][1], positions[112][1]) - leftOriginY);
-  var rightOriginX = Math.round(Math.min(positions[414][0], positions[463][0], positions[453][0]));
-  var rightOriginY = Math.round(Math.min(positions[414][1], positions[257][1], positions[467][1]));
-  var rightWidth = Math.round(Math.max(positions[467][0], positions[359][0], positions[255][0]) - rightOriginX);
-  var rightHeight = Math.round(Math.max(positions[341][1], positions[253][1], positions[255][1]) - rightOriginY);
+  // TODO: Recompute these variables based on the new facemesh model
+  var leftOriginX = 200
+  var leftOriginY = 200
+  var leftWidth = 50
+  var leftHeight = 30
+  var rightOriginX = 400
+  var rightOriginY = 200
+  var rightWidth = 50
+  var rightHeight = 30
 
   if (leftWidth === 0 || rightWidth === 0){
     console.log('an eye patch had zero width');

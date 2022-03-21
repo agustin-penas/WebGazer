@@ -592,7 +592,7 @@ async function init(stream, options) {
       e.target.removeEventListener(e.type, setupPreviewVideo);
       res();
     };
-    videoElement.addEventListener('timeupdate', setupPreviewVideo);
+    videoElement.addEventListener('loadeddata', setupPreviewVideo);
   });
 
   if (options.initializeMouseListeners) {
@@ -603,9 +603,9 @@ async function init(stream, options) {
   paused = false;
   clockStart = performance.now();
 
-  requestAnimationFrame(eyePatchesEmissionLoop);
   await loop();
   await videoPreviewSetup;
+  requestAnimationFrame(eyePatchesEmissionLoop);
 }
 
 /**

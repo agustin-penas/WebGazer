@@ -48,12 +48,10 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   }
 
   // Save positions to global variable
-  this.positionsArray = predictions[0].scaledMesh;
+  const { keypoints } = predictions[0];
+  this.positionsArray = keypoints;
   const positions = this.positionsArray;
 
-  const { scaledMesh } = predictions[0];
-  // Keypoints indexes are documented at
-  // https://github.com/tensorflow/tfjs-models/blob/118d4727197d4a21e2d4691e134a7bc30d90deee/face-landmarks-detection/mesh_map.jpg
   const [leftBBox, rightBBox] = [
     // left
     {
@@ -75,12 +73,12 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     },
   ].map(({ eyeTopArcKeypoints, eyeBottomArcKeypoints }) => {
     const topLeftOrigin = {
-      x: Math.round(Math.min(...eyeTopArcKeypoints.map(k => scaledMesh[k][0]))),
-      y: Math.round(Math.min(...eyeTopArcKeypoints.map(k => scaledMesh[k][1]))),
+      x: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].y))),
     };
     const bottomRightOrigin = {
-      x: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => scaledMesh[k][0]))),
-      y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => scaledMesh[k][1]))),
+      x: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].y))),
     };
 
     return {

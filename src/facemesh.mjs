@@ -1,4 +1,7 @@
-import faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import '@mediapipe/face_mesh';
+import '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import tfjsFaceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import tf from '@tensorflow/tfjs';
 
 /**
@@ -6,14 +9,14 @@ import tf from '@tensorflow/tfjs';
  * @constructor
  * */
 const TFFaceMesh = function() {
-  //Backend options are webgl, wasm, and CPU.
-  //For recent laptops WASM is better than WebGL.
-  //TODO: This hack makes loading the model block the UI. We should fix that
-  // this.model = (async () => { return await facemesh.load({"maxFaces":1}) })();
-  this.model = faceLandmarksDetection.load(
-    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-    { maxFaces: 1 }
-  );
+  // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection/src/mediapipe
+  // https://github.com/tensorflow/tfjs-models/blob/master/face-landmarks-detection/README.md#how-to-run-it
+  this.model = tfjsFaceLandmarksDetection.createDetector(
+    tfjsFaceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+    {
+      runtime: 'mediapipe',
+      solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+    });
   this.predictionReady = false;
 };
 
@@ -38,12 +41,7 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
 
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph.
-  const predictions = await model.estimateFaces({
-      input: video,
-      returnTensors: false,
-      flipHorizontal: false,
-      predictIrises: false,
-    });
+  const predictions = await model.estimateFaces(video);
 
   if (predictions.length == 0){
     return false;

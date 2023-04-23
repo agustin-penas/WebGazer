@@ -9,8 +9,6 @@ import tf from '@tensorflow/tfjs';
  * @constructor
  * */
 const TFFaceMesh = function() {
-  // https://github.com/tensorflow/tfjs-models/tree/master/face-landmarks-detection/src/mediapipe
-  // https://github.com/tensorflow/tfjs-models/blob/master/face-landmarks-detection/README.md#how-to-run-it
   this.model = tfjsFaceLandmarksDetection.createDetector(
     tfjsFaceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
     {

@@ -1,4 +1,7 @@
-import faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import '@mediapipe/face_mesh';
+import '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import tfjsFaceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import tf from '@tensorflow/tfjs';
 
 /**
@@ -6,14 +9,12 @@ import tf from '@tensorflow/tfjs';
  * @constructor
  * */
 const TFFaceMesh = function() {
-  //Backend options are webgl, wasm, and CPU.
-  //For recent laptops WASM is better than WebGL.
-  //TODO: This hack makes loading the model block the UI. We should fix that
-  // this.model = (async () => { return await facemesh.load({"maxFaces":1}) })();
-  this.model = faceLandmarksDetection.load(
-    faceLandmarksDetection.SupportedPackages.mediapipeFacemesh,
-    { maxFaces: 1 }
-  );
+  this.model = tfjsFaceLandmarksDetection.createDetector(
+    tfjsFaceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+    {
+      runtime: 'mediapipe',
+      solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+    });
   this.predictionReady = false;
 };
 
@@ -38,24 +39,17 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
 
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph.
-  const predictions = await model.estimateFaces({
-      input: video,
-      returnTensors: false,
-      flipHorizontal: false,
-      predictIrises: false,
-    });
+  const predictions = await model.estimateFaces(video);
 
   if (predictions.length == 0){
     return false;
   }
 
   // Save positions to global variable
-  this.positionsArray = predictions[0].scaledMesh;
+  const { keypoints } = predictions[0];
+  this.positionsArray = keypoints;
   const positions = this.positionsArray;
 
-  const { scaledMesh } = predictions[0];
-  // Keypoints indexes are documented at
-  // https://github.com/tensorflow/tfjs-models/blob/118d4727197d4a21e2d4691e134a7bc30d90deee/face-landmarks-detection/mesh_map.jpg
   const [leftBBox, rightBBox] = [
     // left
     {
@@ -77,12 +71,12 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     },
   ].map(({ eyeTopArcKeypoints, eyeBottomArcKeypoints }) => {
     const topLeftOrigin = {
-      x: Math.round(Math.min(...eyeTopArcKeypoints.map(k => scaledMesh[k][0]))),
-      y: Math.round(Math.min(...eyeTopArcKeypoints.map(k => scaledMesh[k][1]))),
+      x: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].y))),
     };
     const bottomRightOrigin = {
-      x: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => scaledMesh[k][0]))),
-      y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => scaledMesh[k][1]))),
+      x: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].y))),
     };
 
     return {

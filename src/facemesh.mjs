@@ -1,14 +1,20 @@
-import FacemeshModel from '@tensorflow-models/facemesh';
+import '@mediapipe/face_mesh';
+import '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import tfjsFaceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
+import tf from '@tensorflow/tfjs';
+
 /**
  * Constructor of TFFaceMesh object
  * @constructor
  * */
 const TFFaceMesh = function() {
-  //Backend options are webgl, wasm, and CPU.
-  //For recent laptops WASM is better than WebGL.
-  //TODO: This hack makes loading the model block the UI. We should fix that
-  // this.model = (async () => { return await facemesh.load({"maxFaces":1}) })();
-  this.model = FacemeshModel.load({"maxFaces":1});
+  this.model = tfjsFaceLandmarksDetection.createDetector(
+    tfjsFaceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+    {
+      runtime: 'mediapipe',
+      solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+    });
   this.predictionReady = false;
 };
 
@@ -33,18 +39,45 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
 
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph.
-  const predictions = await model.estimateFaces(imageCanvas);
+  const predictions = await model.estimateFaces(video);
 
   if (predictions.length == 0){
     return false;
   }
 
   // Save positions to global variable
-  this.positionsArray = predictions[0].scaledMesh;
+  const { keypoints } = predictions[0];
+  this.positionsArray = keypoints;
   const positions = this.positionsArray;
 
-  // Fit the detected eye in a rectangle. [20200626 xk] not clear which approach is better
-  // https://raw.githubusercontent.com/tensorflow/tfjs-models/master/facemesh/mesh_map.jpg
+  const [leftBBox, rightBBox] = [
+    // left
+    {
+      eyeTopArcKeypoints: [
+        25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
+      ],
+      eyeBottomArcKeypoints: [
+        25, 110, 24, 23, 22, 26, 112, 243,
+      ],
+    },
+    // right
+    {
+      eyeTopArcKeypoints: [
+        463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
+      ],
+      eyeBottomArcKeypoints: [
+        463, 341, 256, 252, 253, 254, 339, 255,
+      ],
+    },
+  ].map(({ eyeTopArcKeypoints, eyeBottomArcKeypoints }) => {
+    const topLeftOrigin = {
+      x: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].y))),
+    };
+    const bottomRightOrigin = {
+      x: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].y))),
+    };
 
   // // Maintains a relatively stable shape of the bounding box at the cost of cutting off parts of
   // // the eye when the eye is tilted.

@@ -3,7 +3,7 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import tfjsFaceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import tf from '@tensorflow/tfjs';
-import blinkDetector from './blink-color.mjs'
+import blinkDetector from './blink-ear.mjs'
 import { eye } from '@tensorflow/tfjs-core';
 
 /**
@@ -111,10 +111,10 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     return null;
   }
 
-	//var eyesBlinking = blinkDetector.isBlink(keypoints);
-	//if (eyesBlinking.left || eyesBlinking.right) {
-	//	console.log(eyesBlinking);
-	//}
+	var eyesBlinking = blinkDetector.isBlink(keypoints);
+	if (eyesBlinking.left || eyesBlinking.right) {
+		//console.log(eyesBlinking);
+	}
 
   // Start building object to be returned
   var eyeObjs = {};
@@ -124,8 +124,8 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     imagex: leftOriginX,
     imagey: leftOriginY,
     width: leftWidth,
-    height: leftHeight
-		//isBlink: eyesBlinking.left
+    height: leftHeight,
+		isBlink: eyesBlinking.left
   };
 
   var rightImageData = imageCanvas.getContext('2d').getImageData(rightOriginX, rightOriginY, rightWidth, rightHeight);
@@ -134,13 +134,13 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     imagex: rightOriginX,
     imagey: rightOriginY,
     width: rightWidth,
-    height: rightHeight
-		//isBlink: eyesBlinking.right
+    height: rightHeight,
+		isBlink: eyesBlinking.right
   };
-	eyeObjs = blinkDetector.isBlink(eyeObjs);
-	if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
-		console.log(eyeObjs.left.isBlink);
-	}
+	//eyeObjs = blinkDetector.isBlink(eyeObjs);
+	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
+		//console.log(eyeObjs.left.isBlink);
+	//}
   this.predictionReady = true;
 
   return eyeObjs;

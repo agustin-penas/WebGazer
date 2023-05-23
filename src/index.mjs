@@ -247,11 +247,19 @@ async function getPrediction(regModelIndex) {
   for (var reg in regs) {
     predictions.push(regs[reg].predict(latestEyeFeatures));
   }
+	var blink = false;
+	if(latestEyeFeatures){
+		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
+		//console.log("left blink: "+latestEyeFeatures.left.isBlink);
+		//console.log("right blink: "+latestEyeFeatures.right.isBlink);
+	}
+
   if (regModelIndex !== undefined) {
     return predictions[regModelIndex] === null ? null : {
       'x' : predictions[regModelIndex].x,
       'y' : predictions[regModelIndex].y,
       'eyeFeatures': latestEyeFeatures,
+      'isBlink': blink,
       't' : time
     };
   } else {
@@ -260,6 +268,7 @@ async function getPrediction(regModelIndex) {
       'y' : predictions[0].y,
       'eyeFeatures': latestEyeFeatures,
       'all' : predictions,
+      'isBlink': blink,
       't' : time
     };
   }

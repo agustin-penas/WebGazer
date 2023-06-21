@@ -43,6 +43,7 @@ var clockStart = performance.now();
 var latestEyeFeatures = null;
 var latestGazeData = null;
 var paused = false;
+let sampling_interval = 34; // 34ms gives us arround 30fps
 //registered callback for loop
 var nopCallback = function(data, time) {};
 var callback = nopCallback;
@@ -229,7 +230,15 @@ async function eyePatchesEmissionLoop() {
   document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
     detail: latestEyeFeatures
   }));
-  requestAnimationFrame(eyePatchesEmissionLoop);
+  setInterval(async () => {
+    latestEyeFeatures = await getPupilFeatures(
+      videoElement, videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height
+    );
+    document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
+      detail: latestEyeFeatures
+    }));
+  }, sampling_interval);
+  //requestAnimationFrame(eyePatchesEmissionLoop);
 };
 
 /**

@@ -4,6 +4,7 @@ import '@tensorflow/tfjs-backend-webgl';
 import tfjsFaceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import tf from '@tensorflow/tfjs';
 import blinkDetector from './blink-ear.mjs'
+import outOfPlaneDetector from './outOfPlaneDetector.mjs'
 import { eye } from '@tensorflow/tfjs-core';
 
 /**
@@ -52,6 +53,8 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   const { keypoints } = predictions[0];
   this.positionsArray = keypoints;
   const positions = this.positionsArray;
+  //console.log("keypoint 160: " + keypoints[160].z);
+  var outOfPlane = outOfPlaneDetector.isOutOfPlane(keypoints);
 
 	const leftEyeTopArcKeypoints = [
 		25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
@@ -125,7 +128,8 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     imagey: leftOriginY,
     width: leftWidth,
     height: leftHeight,
-		isBlink: eyesBlinking.left
+		isBlink: eyesBlinking.left,
+    outOfPlane: outOfPlane
   };
 
   var rightImageData = imageCanvas.getContext('2d').getImageData(rightOriginX, rightOriginY, rightWidth, rightHeight);
@@ -135,7 +139,8 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     imagey: rightOriginY,
     width: rightWidth,
     height: rightHeight,
-		isBlink: eyesBlinking.right
+		isBlink: eyesBlinking.right,
+    outOfPlane: outOfPlane
   };
 	//eyeObjs = blinkDetector.isBlink(eyeObjs);
 	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {

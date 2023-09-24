@@ -1,4 +1,3 @@
-import '@tensorflow/tfjs';
 import 'regression';
 import params from './params';
 import './dom_util';
@@ -193,12 +192,12 @@ function drawCoordinates(colour,x,y){
  * @param {Number} width - the width of canvas
  * @param {Number} height - the height of canvas
  */
-function getPupilFeatures(canvas, width, height) {
+function getPupilFeatures(video, canvas, width, height) {
   if (!canvas) {
     return;
   }
   try {
-    return curTracker.getEyePatches(canvas, width, height);
+    return curTracker.getEyePatches(video, canvas, width, height);
   } catch(err) {
     console.log("can't get pupil features ", err);
     return null;
@@ -238,7 +237,7 @@ async function getPrediction(regModelIndex) {
 
   var predictions = [];
   // [20200617 xk] TODO: this call should be made async somehow. will take some work.
-  latestEyeFeatures = await getPupilFeatures(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
+  latestEyeFeatures = await getPupilFeatures(video, videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
 
   if (regs.length === 0) {
     console.log('regression not set, call setRegression()');

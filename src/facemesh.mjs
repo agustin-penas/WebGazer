@@ -16,6 +16,7 @@ const TFFaceMesh = function() {
     {
       runtime: 'mediapipe',
       solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+			refineLandmarks: true,
     });
   this.predictionReady = false;
 };
@@ -30,7 +31,7 @@ TFFaceMesh.prototype.positionsArray = null;
  * @param  {Number} height - of imageCanvas
  * @return {Object} the two eye-patches, first left, then right eye
  */
-TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) {
+TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, height) {
 
   if (imageCanvas.width === 0) {
     return null;
@@ -52,24 +53,28 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
   this.positionsArray = keypoints;
   const positions = this.positionsArray;
 
+	const leftEyeTopArcKeypoints = [
+		25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
+	];
+	const leftEyeBottomArcKeypoints = [
+		25, 110, 24, 23, 22, 26, 112, 243,
+	];
+	const rightEyeTopArcKeypoints = [
+		463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
+	];
+	const rightEyeBottomArcKeypoints = [
+		463, 341, 256, 252, 253, 254, 339, 255,
+	];
   const [leftBBox, rightBBox] = [
     // left
     {
-      eyeTopArcKeypoints: [
-        25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
-      ],
-      eyeBottomArcKeypoints: [
-        25, 110, 24, 23, 22, 26, 112, 243,
-      ],
+      eyeTopArcKeypoints: leftEyeTopArcKeypoints,
+      eyeBottomArcKeypoints: leftEyeBottomArcKeypoints,
     },
     // right
     {
-      eyeTopArcKeypoints: [
-        463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
-      ],
-      eyeBottomArcKeypoints: [
-        463, 341, 256, 252, 253, 254, 339, 255,
-      ],
+      eyeTopArcKeypoints: rightEyeTopArcKeypoints,
+      eyeBottomArcKeypoints: rightEyeBottomArcKeypoints,
     },
   ].map(({ eyeTopArcKeypoints, eyeBottomArcKeypoints }) => {
     const topLeftOrigin = {
@@ -81,27 +86,20 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
       y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].y))),
     };
 
-  // // Maintains a relatively stable shape of the bounding box at the cost of cutting off parts of
-  // // the eye when the eye is tilted.
-  // var leftOriginX = Math.round(positions[130][0]);
-  // var leftOriginY = Math.round(positions[27][1]);
-  // var leftWidth = Math.round(positions[243][0] - leftOriginX);
-  // var leftHeight = Math.round(positions[23][1] - leftOriginY);
-  // var rightOriginX = Math.round(positions[463][0]);
-  // var rightOriginY = Math.round(positions[257][1]);
-  // var rightWidth = Math.round(positions[359][0] - rightOriginX);
-  // var rightHeight = Math.round(positions[253][1] - rightOriginY);
-
-  // Won't really cut off any parts of the eye, at the cost of warping the shape (i.e. height/
-  // width ratio) of the bounding box.
-  var leftOriginX = Math.round(Math.min(positions[247][0], positions[130][0], positions[25][0]));
-  var leftOriginY = Math.round(Math.min(positions[247][1], positions[27][1], positions[190][1]));
-  var leftWidth = Math.round(Math.max(positions[190][0], positions[243][0], positions[233][0]) - leftOriginX);
-  var leftHeight = Math.round(Math.max(positions[25][1], positions[23][1], positions[112][1]) - leftOriginY);
-  var rightOriginX = Math.round(Math.min(positions[414][0], positions[463][0], positions[453][0]));
-  var rightOriginY = Math.round(Math.min(positions[414][1], positions[257][1], positions[467][1]));
-  var rightWidth = Math.round(Math.max(positions[467][0], positions[359][0], positions[255][0]) - rightOriginX);
-  var rightHeight = Math.round(Math.max(positions[341][1], positions[253][1], positions[255][1]) - rightOriginY);
+    return {
+      origin: topLeftOrigin,
+      width: bottomRightOrigin.x - topLeftOrigin.x,
+      height: bottomRightOrigin.y - topLeftOrigin.y,
+    }
+  });
+  var leftOriginX = leftBBox.origin.x;
+  var leftOriginY = leftBBox.origin.y;
+  var leftWidth = leftBBox.width;
+  var leftHeight = leftBBox.height;
+  var rightOriginX = rightBBox.origin.x;
+  var rightOriginY = rightBBox.origin.y;
+  var rightWidth = rightBBox.width;
+  var rightHeight = rightBBox.height;
 
   if (leftWidth === 0 || rightWidth === 0){
     console.log('an eye patch had zero width');
@@ -114,13 +112,9 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
   }
 
 	var eyesBlinking = blinkDetector.isBlink(keypoints);
-	if (eyesBlinking.left || eyesBlinking.right) {
-		//console.log(eyesBlinking);
-	}
 
   // Start building object to be returned
   var eyeObjs = {};
-
   var leftImageData = imageCanvas.getContext('2d').getImageData(leftOriginX, leftOriginY, leftWidth, leftHeight);
   eyeObjs.left = {
     patch: leftImageData,
@@ -140,6 +134,10 @@ TFFaceMesh.prototype.getEyePatches = async function(imageCanvas, width, height) 
     height: rightHeight,
 		isBlink: eyesBlinking.right
   };
+	eyeObjs = blinkDetector.isBlink(eyeObjs);
+	if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
+		console.log(eyeObjs.left.isBlink);
+	}
 	//eyeObjs = blinkDetector.isBlink(eyeObjs);
 	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
 		//console.log(eyeObjs.left.isBlink);
@@ -175,8 +173,8 @@ TFFaceMesh.prototype.drawFaceOverlay= function(ctx, keypoints){
     ctx.lineWidth = 0.5;
 
     for (let i = 0; i < keypoints.length; i++) {
-      const x = keypoints[i][0];
-      const y = keypoints[i][1];
+      const x = keypoints[i].x;
+      const y = keypoints[i].y;
 
       ctx.beginPath();
       ctx.arc(x, y, 1 /* radius */, 0, 2 * Math.PI);

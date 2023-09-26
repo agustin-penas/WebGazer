@@ -3,6 +3,8 @@ import '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import tfjsFaceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import tf from '@tensorflow/tfjs';
+import blinkDetector from './blink-ear.mjs'
+import { eye } from '@tensorflow/tfjs-core';
 
 /**
  * Constructor of TFFaceMesh object
@@ -14,6 +16,7 @@ const TFFaceMesh = function() {
     {
       runtime: 'mediapipe',
       solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+			refineLandmarks: true,
     });
   this.predictionReady = false;
 };
@@ -50,24 +53,28 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   this.positionsArray = keypoints;
   const positions = this.positionsArray;
 
+	const leftEyeTopArcKeypoints = [
+		25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
+	];
+	const leftEyeBottomArcKeypoints = [
+		25, 110, 24, 23, 22, 26, 112, 243,
+	];
+	const rightEyeTopArcKeypoints = [
+		463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
+	];
+	const rightEyeBottomArcKeypoints = [
+		463, 341, 256, 252, 253, 254, 339, 255,
+	];
   const [leftBBox, rightBBox] = [
     // left
     {
-      eyeTopArcKeypoints: [
-        25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
-      ],
-      eyeBottomArcKeypoints: [
-        25, 110, 24, 23, 22, 26, 112, 243,
-      ],
+      eyeTopArcKeypoints: leftEyeTopArcKeypoints,
+      eyeBottomArcKeypoints: leftEyeBottomArcKeypoints,
     },
     // right
     {
-      eyeTopArcKeypoints: [
-        463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
-      ],
-      eyeBottomArcKeypoints: [
-        463, 341, 256, 252, 253, 254, 339, 255,
-      ],
+      eyeTopArcKeypoints: rightEyeTopArcKeypoints,
+      eyeBottomArcKeypoints: rightEyeBottomArcKeypoints,
     },
   ].map(({ eyeTopArcKeypoints, eyeBottomArcKeypoints }) => {
     const topLeftOrigin = {
@@ -104,16 +111,21 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     return null;
   }
 
+	var eyesBlinking = blinkDetector.isBlink(keypoints);
+	if (eyesBlinking.left || eyesBlinking.right) {
+		//console.log(eyesBlinking);
+	}
+
   // Start building object to be returned
   var eyeObjs = {};
-
   var leftImageData = imageCanvas.getContext('2d').getImageData(leftOriginX, leftOriginY, leftWidth, leftHeight);
   eyeObjs.left = {
     patch: leftImageData,
     imagex: leftOriginX,
     imagey: leftOriginY,
     width: leftWidth,
-    height: leftHeight
+    height: leftHeight,
+		isBlink: eyesBlinking.left
   };
 
   var rightImageData = imageCanvas.getContext('2d').getImageData(rightOriginX, rightOriginY, rightWidth, rightHeight);
@@ -122,9 +134,13 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     imagex: rightOriginX,
     imagey: rightOriginY,
     width: rightWidth,
-    height: rightHeight
+    height: rightHeight,
+		isBlink: eyesBlinking.right
   };
-
+	//eyeObjs = blinkDetector.isBlink(eyeObjs);
+	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
+		//console.log(eyeObjs.left.isBlink);
+	//}
   this.predictionReady = true;
 
   return eyeObjs;
@@ -156,8 +172,8 @@ TFFaceMesh.prototype.drawFaceOverlay= function(ctx, keypoints){
     ctx.lineWidth = 0.5;
 
     for (let i = 0; i < keypoints.length; i++) {
-      const x = keypoints[i][0];
-      const y = keypoints[i][1];
+      const x = keypoints[i].x;
+      const y = keypoints[i].y;
 
       ctx.beginPath();
       ctx.arc(x, y, 1 /* radius */, 0, 2 * Math.PI);

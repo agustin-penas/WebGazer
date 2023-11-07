@@ -255,7 +255,10 @@ async function getPrediction(regModelIndex) {
   var time = performance.now();
 
   latestEyeFeatures = await getPupilFeatures(videoElement, videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
-
+  document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
+    detail: latestEyeFeatures
+  }));
+  
   var predictions = [];
 
   if (regs.length === 0) {

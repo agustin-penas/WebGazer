@@ -293,6 +293,13 @@ var smoothingVals = new webgazer.util.DataWindow(4);
 var k = 0;
 
 async function loop() {
+  internalLoop()
+  setInterval(async () => {
+    internalLoop()
+  }, sampling_interval);
+}
+
+ async function internalLoop() {
   if (!paused) {
 
     // [20200617 XK] TODO: there is currently lag between the camera input and the face overlay. This behavior

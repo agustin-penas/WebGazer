@@ -223,7 +223,7 @@ function paintCurrentFrame(canvas, width, height) {
   ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 }
 
-async function eyePatchesEmissionLoop() {
+/*async function eyePatchesEmissionLoop() {
   latestEyeFeatures = await getPupilFeatures(
     videoElement, videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height
   );
@@ -239,7 +239,7 @@ async function eyePatchesEmissionLoop() {
     }));
   }, sampling_interval);
   //requestAnimationFrame(eyePatchesEmissionLoop);
-};
+};*/
 
 /**
  * Paints the video to a canvas and runs the prediction pipeline to get a prediction
@@ -253,6 +253,8 @@ async function getPrediction(regModelIndex) {
     paintCurrentFrame(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
   }
   var time = performance.now();
+
+  latestEyeFeatures = await getPupilFeatures(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
 
   var predictions = [];
 

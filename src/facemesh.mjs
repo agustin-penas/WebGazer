@@ -20,6 +20,7 @@ const TFFaceMesh = function() {
 			refineLandmarks: true,
     });
   this.predictionReady = false;
+  this.frameImageCanvas = document.createElement('canvas');
 };
 
 // Global variable for face landmark positions array
@@ -151,6 +152,130 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   return eyeObjs;
 };
 
+
+/**
+ * Isolates the two patches that correspond to the user's eyes
+ * @param  {VideoFrame} videoFrame - Frame to use
+ * @return {Object} the two eye-patches, first left, then right eye
+ */
+TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
+  // Load the MediaPipe facemesh model.
+  const model = await this.model;
+
+  // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
+  // array of detected faces from the MediaPipe graph.
+  const predictions = await model.estimateFaces(videoFrame);
+
+  if (predictions.length == 0){
+    return false;
+  }
+
+  // Save positions to global variable
+  const { keypoints } = predictions[0];
+  this.positionsArray = keypoints;
+  const positions = this.positionsArray;
+  //console.log("keypoint 160: " + keypoints[160].z);
+  var outOfPlane = outOfPlaneDetector.isOutOfPlane(keypoints);
+
+	const leftEyeTopArcKeypoints = [
+		25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
+	];
+	const leftEyeBottomArcKeypoints = [
+		25, 110, 24, 23, 22, 26, 112, 243,
+	];
+	const rightEyeTopArcKeypoints = [
+		463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
+	];
+	const rightEyeBottomArcKeypoints = [
+		463, 341, 256, 252, 253, 254, 339, 255,
+	];
+  const [leftBBox, rightBBox] = [
+    // left
+    {
+      eyeTopArcKeypoints: leftEyeTopArcKeypoints,
+      eyeBottomArcKeypoints: leftEyeBottomArcKeypoints,
+    },
+    // right
+    {
+      eyeTopArcKeypoints: rightEyeTopArcKeypoints,
+      eyeBottomArcKeypoints: rightEyeBottomArcKeypoints,
+    },
+  ].map(({ eyeTopArcKeypoints, eyeBottomArcKeypoints }) => {
+    const topLeftOrigin = {
+      x: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.min(...eyeTopArcKeypoints.map(k => keypoints[k].y))),
+    };
+    const bottomRightOrigin = {
+      x: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].x))),
+      y: Math.round(Math.max(...eyeBottomArcKeypoints.map(k => keypoints[k].y))),
+    };
+
+    return {
+      origin: topLeftOrigin,
+      width: bottomRightOrigin.x - topLeftOrigin.x,
+      height: bottomRightOrigin.y - topLeftOrigin.y,
+    }
+  });
+  var leftOriginX = leftBBox.origin.x;
+  var leftOriginY = leftBBox.origin.y;
+  var leftWidth = leftBBox.width;
+  var leftHeight = leftBBox.height;
+  var rightOriginX = rightBBox.origin.x;
+  var rightOriginY = rightBBox.origin.y;
+  var rightWidth = rightBBox.width;
+  var rightHeight = rightBBox.height;
+
+  if (leftWidth === 0 || rightWidth === 0){
+    console.log('an eye patch had zero width');
+    return null;
+  }
+
+  if (leftHeight === 0 || rightHeight === 0){
+    console.log('an eye patch had zero height');
+    return null;
+  }
+
+	var eyesBlinking = blinkDetector.isBlink(keypoints);
+	if (eyesBlinking.left || eyesBlinking.right) {
+		//console.log(eyesBlinking);
+	}
+
+  paintCurrentFrame(videoFrame, this.frameImageCanvas, videoFrame.codedWidth, video.codedHeight)
+
+  // Start building object to be returned
+  var eyeObjs = {};
+  //var leftImageData2 = video.getImageData(leftOriginX, leftOriginY, leftWidth, leftHeight);
+  //console.log(leftImageData2)
+  var leftImageData = this.frameImageCanvas.getContext('2d').getImageData(leftOriginX, leftOriginY, leftWidth, leftHeight);
+  eyeObjs.left = {
+    patch: leftImageData,
+    imagex: leftOriginX,
+    imagey: leftOriginY,
+    width: leftWidth,
+    height: leftHeight,
+		isBlink: eyesBlinking.left,
+    outOfPlane: outOfPlane
+  };
+
+  var rightImageData = this.frameImageCanvas.getContext('2d').getImageData(rightOriginX, rightOriginY, rightWidth, rightHeight);
+  eyeObjs.right = {
+    patch: rightImageData,
+    imagex: rightOriginX,
+    imagey: rightOriginY,
+    width: rightWidth,
+    height: rightHeight,
+		isBlink: eyesBlinking.right,
+    outOfPlane: outOfPlane
+  };
+	//eyeObjs = blinkDetector.isBlink(eyeObjs);
+	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
+		//console.log(eyeObjs.left.isBlink);
+	//}
+  this.predictionReady = true;
+
+  return eyeObjs;
+};
+
 /**
  * Returns the positions array corresponding to the last call to getEyePatches.
  * Requires that getEyePatches() was called previously, else returns null.
@@ -186,6 +311,18 @@ TFFaceMesh.prototype.drawFaceOverlay= function(ctx, keypoints){
       ctx.fill();
     }
   }
+}
+
+function paintCurrentFrame(videoFrame, canvas, width, height) {
+  if (canvas.width != width) {
+    canvas.width = width;
+  }
+  if (canvas.height != height) {
+    canvas.height = height;
+  }
+
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(videoFrame, 0, 0, canvas.width, canvas.height);
 }
 
 /**

@@ -266,8 +266,6 @@ async function getPrediction(regModelIndex) {
 	var blink = false;
 	if(latestEyeFeatures){
 		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
-		//console.log("left blink: "+latestEyeFeatures.left.isBlink);
-		//console.log("right blink: "+latestEyeFeatures.right.isBlink);
 	}
 
   if (regModelIndex !== undefined) {
@@ -1182,6 +1180,13 @@ webgazer.computeRegressionCoefficients = function() {
   for (var reg in regs) {
     regs[reg].computeCoefficients();
   }
+}
+
+webgazer.eyePatchesForFrame = function(videoFrame) {
+  latestEyeFeatures = curTracker.getEyePatchesForFrame(videoFrame);
+  document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
+    detail: latestEyeFeatures
+  }));
 }
 
 export default webgazer;

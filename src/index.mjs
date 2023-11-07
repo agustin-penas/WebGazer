@@ -254,7 +254,7 @@ async function getPrediction(regModelIndex) {
   }
   var time = performance.now();
 
-  latestEyeFeatures = await getPupilFeatures(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
+  latestEyeFeatures = await getPupilFeatures(videoElement, videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
 
   var predictions = [];
 

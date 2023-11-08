@@ -619,7 +619,7 @@ async function init(stream, options) {
 
   await loop();
   await videoPreviewSetup;
-  requestAnimationFrame(eyePatchesEmissionLoop);
+  //requestAnimationFrame(eyePatchesEmissionLoop);
 }
 
 /**

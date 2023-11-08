@@ -617,8 +617,8 @@ async function init(stream, options) {
   paused = false;
   clockStart = performance.now();
 
-  await loop();
   await videoPreviewSetup;
+  await loop();
   //requestAnimationFrame(eyePatchesEmissionLoop);
 }
 

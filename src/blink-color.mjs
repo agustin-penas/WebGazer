@@ -55,7 +55,7 @@ function isBlink() {
 		}
 		medianColorData /= (blinkWindow-1);
 		let blink = medianColorData/lastFrame.data
-		console.log(blink);
+	//console.log(blink);
 		return blink > minCorrelation && blink < maxCorrelation;
 }
 

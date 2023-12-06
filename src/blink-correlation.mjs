@@ -55,7 +55,7 @@ function isBlink() {
 				correlation += util.correlation(data.data, nextData.data);
 		}
 		correlation /= blinkWindow;
-		console.log(correlation);
+		//console.log(correlation);
 		return correlation > minCorrelation && correlation < maxCorrelation;
 }
 

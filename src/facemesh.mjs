@@ -32,8 +32,7 @@ TFFaceMesh.prototype.positionsArray = null;
  * @param  {Number} height - of imageCanvas
  * @return {Object} the two eye-patches, first left, then right eye
  */
-TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, height) {
-
+TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, height, cameraFocalLenEstimation) {
   if (imageCanvas.width === 0) {
     return null;
   }
@@ -72,13 +71,11 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
 
   // Logitech HD Pro C922	Norm focal
   var normalizedFocaleX = 1.40625; //50
-  var fx = 756// Math.min(video.videoWidth, video.videoHeight) * normalizedFocaleX;
+  var fx = cameraFocalLenEstimation // Math.min(video.videoWidth, video.videoHeight) * normalizedFocaleX;
   var dZ = (fx * (dX / dx)) / 10.0;
   dZ = dZ.toFixed(2);
   console.log(dZ + " cm");
   console.log(fx)
-  console.log(video.videoWidth)
-  console.log(video.videoHeight)
 
   // Save positions to global variable
   this.positionsArray = keypoints;

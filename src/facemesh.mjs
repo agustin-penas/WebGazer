@@ -48,9 +48,39 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   if (predictions.length == 0){
     return false;
   }
+  const { keypoints } = predictions[0];
+  //const { box } = predictions[1];
+  //this are thr points for the left iris, in other versions of
+  // facemesh there is a way to obtain this from the result without enumerating the points.
+  const LEFT_IRIS_POINTS = [474, 475, 476, 477]
+  var irisLeftMinX = -1;
+  var irisLeftMaxX = -1;
+  for (const point of LEFT_IRIS_POINTS) {
+    //console.log(point)
+    var point0 = keypoints[point];
+    //console.log(point0.z);
+    if (irisLeftMinX == -1 || point0.x < irisLeftMinX) {
+      irisLeftMinX = point0.x;
+    }
+    if (irisLeftMaxX == -1 || point0.x > irisLeftMaxX) {
+      irisLeftMaxX = point0.x;
+    }
+  }
+
+  var dx = irisLeftMaxX - irisLeftMinX;
+  var dX = 11.7;
+
+  // Logitech HD Pro C922	Norm focal
+  var normalizedFocaleX = 1.40625; //50
+  var fx = 756// Math.min(video.videoWidth, video.videoHeight) * normalizedFocaleX;
+  var dZ = (fx * (dX / dx)) / 10.0;
+  dZ = dZ.toFixed(2);
+  console.log(dZ + " cm");
+  console.log(fx)
+  console.log(video.videoWidth)
+  console.log(video.videoHeight)
 
   // Save positions to global variable
-  const { keypoints } = predictions[0];
   this.positionsArray = keypoints;
   const positions = this.positionsArray;
   //console.log("keypoint 160: " + keypoints[160].z);

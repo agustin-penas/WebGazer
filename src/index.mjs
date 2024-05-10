@@ -267,7 +267,6 @@ async function getPrediction(regModelIndex) {
 	if(latestEyeFeatures){
 		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
 	}
-
   if (regModelIndex !== undefined) {
     return predictions[regModelIndex] === null ? null : {
       'x' : predictions[regModelIndex].x,
@@ -1182,8 +1181,8 @@ webgazer.computeRegressionCoefficients = function() {
   }
 }
 
-webgazer.eyePatchesForFrame = function(videoFrame) {
-  latestEyeFeatures = curTracker.getEyePatchesForFrame(videoFrame);
+webgazer.eyePatchesForFrame = async function(videoFrame) {
+  latestEyeFeatures = await curTracker.getEyePatchesForFrame(videoFrame);
   document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
     detail: latestEyeFeatures
   }));

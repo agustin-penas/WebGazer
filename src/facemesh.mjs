@@ -161,10 +161,13 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
 TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
   // Load the MediaPipe facemesh model.
   const model = await this.model;
+  paintCurrentFrame(videoFrame, this.frameImageCanvas, videoFrame.codedWidth, videoFrame.codedHeight);
 
+  var ctx = this.frameImageCanvas.getContext('2d');
+  let img = ctx.getImageData(0, 0, videoFrame.codedWidth, videoFrame.codedHeight);
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph.
-  const predictions = await model.estimateFaces(videoFrame);
+  const predictions = await model.estimateFaces(img);
 
   if (predictions.length == 0){
     return false;
@@ -240,7 +243,6 @@ TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
 		//console.log(eyesBlinking);
 	}
 
-  paintCurrentFrame(videoFrame, this.frameImageCanvas, videoFrame.codedWidth, video.codedHeight)
 
   // Start building object to be returned
   var eyeObjs = {};

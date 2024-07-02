@@ -3,6 +3,7 @@ const blinkDetector = {};
 var LEFT_OPEN_EYE_DISTANCE = 0;
 var RIGHT_OPEN_EYE_DISTANCE = 0;
 
+const THRESHOLD = [0.1, 0.25, 0.5, 0.75, 0.8];
 
 function getEucledianDistance(x1, y1, x2, y2) {
   return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -38,19 +39,10 @@ blinkDetector.isBlink = function( keypoints ) {
 		point => keypoints[point]
 	);
 	const leftDistance = getEucledianDistance(leftEyeTopArc[5].x, leftEyeTopArc[5].y, leftEyeBottomArc[3].x, leftEyeBottomArc[3].y);
-	console.log(leftDistance);
 
-	if( rightDistance< (0.5*RIGHT_OPEN_EYE_DISTANCE) ){
-		eyeBlinkObjs.right = true;
-	} else {
-		eyeBlinkObjs.right = false;
-	}
+  eyeBlinkObjs.right = THRESHOLD.map( t => rightDistance< (t*RIGHT_OPEN_EYE_DISTANCE))
 
-	if( leftDistance< (0.5*LEFT_OPEN_EYE_DISTANCE) ){
-		eyeBlinkObjs.left = true;
-	} else {
-		eyeBlinkObjs.left = false;
-	}
+  eyeBlinkObjs.left = THRESHOLD.map( t => leftDistance< (t*LEFT_OPEN_EYE_DISTANCE))
 
 	if(leftDistance > LEFT_OPEN_EYE_DISTANCE){
 		LEFT_OPEN_EYE_DISTANCE = leftDistance;

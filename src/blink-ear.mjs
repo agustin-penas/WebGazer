@@ -1,6 +1,6 @@
 const blinkDetector = {};
 
-const EAR_THRESHOLD = 0.27;
+const EAR_THRESHOLD = [0.1, 0.21, 0.27, 0.33, 0.44, 0.5];
 
 function getEucledianDistance(x1, y1, x2, y2) {
   return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
@@ -52,17 +52,9 @@ blinkDetector.isBlink = function( keypoints ) {
 	);
 	const leftEAR = getEAR(leftEyeTopArc, leftEyeBottomArc);
 
-	if (rightEAR<=EAR_THRESHOLD) {
-		eyeBlinkObjs.right = true;
-	} else {
-		eyeBlinkObjs.right = false;
-	}
+  eyeBlinkObjs.right = EAR_THRESHOLD.map( threshold => rightEAR <= threshold);
 
-	if (leftEAR<=EAR_THRESHOLD) {
-		eyeBlinkObjs.left = true;
-	} else {
-		eyeBlinkObjs.left = false;
-	}
+  eyeBlinkObjs.left = EAR_THRESHOLD.map( threshold => leftEAR <= threshold);
 
 	return eyeBlinkObjs;
 }

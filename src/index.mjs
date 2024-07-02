@@ -31,6 +31,8 @@ var gazeDot = null;
 // Why is this not in webgazer.params ?
 var debugVideoLoc = '';
 
+var cameraFocalLenEstimation = 640;
+
 /*
  * Initialises variables used to store accuracy eigenValues
  * This is used by the calibration example file
@@ -198,7 +200,7 @@ function getPupilFeatures(video, canvas, width, height) {
     return;
   }
   try {
-    return curTracker.getEyePatches(video, canvas, width, height);
+    return curTracker.getEyePatches(video, canvas, width, height, cameraFocalLenEstimation);
   } catch(err) {
     console.log("can't get pupil features ", err);
     return null;
@@ -685,6 +687,34 @@ webgazer.begin = function(onFail, initOptions) {
   return new Promise(async (resolve, reject) => {
     let stream;
     try {
+
+      let features = { 
+        audio: true, 
+        video: { 
+            width: { ideal: 1800 }, 
+            height: { ideal: 900 } 
+        } 
+    }; 
+    
+    let display = await navigator.mediaDevices 
+        .getUserMedia(features); 
+    
+    // Returns a sequence of MediaStreamTrack objects  
+    // representing the video tracks in the stream 
+    
+    let settings = display.getVideoTracks()[0] 
+        .getSettings(); 
+    
+    let width = settings.width; 
+    let height = settings.height; 
+    cameraFocalLenEstimation = Math.min(width, height);
+   // console.log('Actual width of the camera video: ' 
+     //   + width + 'px'); 
+    //console.log('Actual height of the camera video:' 
+      //  + height + 'px'); 
+
+
+
       stream = await navigator.mediaDevices.getUserMedia( webgazer.params.camConstraints );
       await init(stream, initOptions);
       resolve(webgazer);

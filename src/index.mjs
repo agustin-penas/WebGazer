@@ -262,25 +262,25 @@ async function getPrediction(regModelIndex) {
     console.log('regression not set, call setRegression()');
     return null;
   }
-  for (var reg in regs) {
-    predictions.push(regs[reg].predict(latestEyeFeatures));
-  }
+  //for (var reg in regs) {
+    //predictions.push(regs[reg].predict(latestEyeFeatures));
+  //}
 	var blink = false;
 	if(latestEyeFeatures){
 		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
 	}
   if (regModelIndex !== undefined) {
     return predictions[regModelIndex] === null ? null : {
-      'x' : predictions[regModelIndex].x,
-      'y' : predictions[regModelIndex].y,
+      'x' : 0,
+      'y' : 0,
       'eyeFeatures': latestEyeFeatures,
       'isBlink': blink,
       't' : time
     };
   } else {
     return predictions.length === 0 || predictions[0] === null ? null : {
-      'x' : predictions[0].x,
-      'y' : predictions[0].y,
+      'x' : 0,
+      'y' : 0,
       'eyeFeatures': latestEyeFeatures,
       'all' : predictions,
       'isBlink': blink,

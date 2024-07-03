@@ -86,9 +86,9 @@ estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation)
   this.positionsArray = keypoints;
   const positions = this.positionsArray;
   //console.log("keypoint 160: " + keypoints[160].z);
-  var outOfPlane = outOfPlaneDetector.isOutOfPlane(keypoints);
-  var outOfPlaneLR = outOfPlaneDetector.isOutOfPlaneLR(keypoints);
-  var outOfPlaneTB = outOfPlaneDetector.isOutOfPlaneTB(keypoints);
+  //var outOfPlane = outOfPlaneDetector.isOutOfPlane(keypoints);
+  //var outOfPlaneLR = outOfPlaneDetector.isOutOfPlaneLR(keypoints);
+  //var outOfPlaneTB = outOfPlaneDetector.isOutOfPlaneTB(keypoints);
 
 	const leftEyeTopArcKeypoints = [
 		25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
@@ -148,7 +148,7 @@ estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation)
     return null;
   }
 
-	var eyesBlinking = blinkDetector.isBlink(keypoints);
+	//var eyesBlinking = blinkDetector.isBlink(keypoints);
 	//if (eyesBlinking.left || eyesBlinking.right) {
 		//console.log(eyesBlinking);
 	//}
@@ -175,10 +175,7 @@ estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation)
     imagey: leftOriginY,
     width: leftWidth,
     height: leftHeight,
-		isBlink: eyesBlinking.left,
-    outOfPlane: outOfPlane,
-    outOfPlaneLR: outOfPlaneLR,
-    outOfPlaneTB: outOfPlaneTB,
+		isBlink: false,
     distanceToCamera: dZ
   };
 
@@ -189,10 +186,7 @@ estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation)
     imagey: rightOriginY,
     width: rightWidth,
     height: rightHeight,
-		isBlink: eyesBlinking.right,
-    outOfPlane: outOfPlane,
-    outOfPlaneLR: outOfPlaneLR,
-    outOfPlaneTB: outOfPlaneTB,
+		isBlink: false,
     distanceToCamera: dZ
   };
 

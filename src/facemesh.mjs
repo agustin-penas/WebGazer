@@ -153,6 +153,19 @@ estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation)
 		//console.log(eyesBlinking);
 	//}
 
+	const rightEyeTopArc = rightEyeTopArcKeypoints.map(
+		point => keypoints[point]
+	);
+	const rightEyeBottomArc = rightEyeBottomArcKeypoints.map(
+		point => keypoints[point]
+	);
+	const leftEyeTopArc = leftEyeTopArcKeypoints.map(
+		point => keypoints[point]
+	);
+	const leftEyeBottomArc = leftEyeBottomArcKeypoints.map(
+		point => keypoints[point]
+	);
+
   // Start building object to be returned
   var eyeObjs = {};
   var leftImageData = imageCanvas.getContext('2d').getImageData(leftOriginX, leftOriginY, leftWidth, leftHeight);
@@ -182,6 +195,19 @@ estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation)
     outOfPlaneTB: outOfPlaneTB,
     distanceToCamera: dZ
   };
+
+  eyeObjs.importantKeypoints = {
+    noseX: keypoints[1].x,
+    noseY: keypoints[1].y,
+    topY: keypoints[10].y,
+    bottomY: keypoints[152].y,
+    leftEarX: keypoints[454].x,
+    rightearX: keypoints[234].x,
+    rightEyeTopArc: rightEyeTopArc,
+    rightEyeBottomArc: rightEyeBottomArc,
+    leftEyeTopArc: leftEyeTopArc,
+    leftEyeBottomArc: leftEyeBottomArc
+  }
 	//eyeObjs = blinkDetector.isBlink(eyeObjs);
 	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
 		//console.log(eyeObjs.left.isBlink);

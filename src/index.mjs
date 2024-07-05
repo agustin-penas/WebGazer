@@ -270,7 +270,7 @@ async function getPrediction(regModelIndex) {
 		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
 	}
   if (regModelIndex !== undefined) {
-    return predictions[regModelIndex] === null ? null : {
+    return /* predictions[regModelIndex] === null ? null :*/ {
       'x' : 0,
       'y' : 0,
       'eyeFeatures': latestEyeFeatures,
@@ -278,7 +278,7 @@ async function getPrediction(regModelIndex) {
       't' : time
     };
   } else {
-    return predictions.length === 0 || predictions[0] === null ? null : {
+    return /*predictions.length === 0 || predictions[0] === null ? null :*/ {
       'x' : 0,
       'y' : 0,
       'eyeFeatures': latestEyeFeatures,

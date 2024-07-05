@@ -38,11 +38,11 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     return null;
   }
 
-  return await estimateOverImage(video, imageCanvas, cameraFocalLenEstimation);
+  return await this.estimateOverImage(video, imageCanvas, cameraFocalLenEstimation);
 };
 
 
-estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation) {
+TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation) {
     // Load the MediaPipe facemesh model.
   const model = await this.model;
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
@@ -222,7 +222,7 @@ TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
   var ctx = this.frameImageCanvas.getContext('2d');
   let img = ctx.getImageData(0, 0, videoFrame.codedWidth, videoFrame.codedHeight);
 
-  return await estimateOverImage(img, this.frameImageCanvas, 640);
+  return await this.estimateOverImage(img, this.frameImageCanvas, 640);
 };
 
 /**

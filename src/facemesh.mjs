@@ -79,8 +79,8 @@ TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, came
   var fx = cameraFocalLenEstimation // Math.min(video.videoWidth, video.videoHeight) * normalizedFocaleX;
   var dZ = (fx * (dX / dx)) / 10.0;
   dZ = dZ.toFixed(2);
-  console.log(dZ + " cm");
-  console.log(fx)
+  //console.log(dZ + " cm");
+  //console.log(fx)
 
   // Save positions to global variable
   this.positionsArray = keypoints;

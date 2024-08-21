@@ -11,13 +11,13 @@ import { eye } from '@tensorflow/tfjs-core';
  * Constructor of TFFaceMesh object
  * @constructor
  * */
-const TFFaceMesh = function() {
+const TFFaceMesh = function () {
   this.model = tfjsFaceLandmarksDetection.createDetector(
     tfjsFaceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
     {
       runtime: 'mediapipe',
       solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
-			refineLandmarks: true,
+      refineLandmarks: true,
     });
   this.predictionReady = false;
   this.frameImageCanvas = document.createElement('canvas');
@@ -33,7 +33,7 @@ TFFaceMesh.prototype.positionsArray = null;
  * @param  {Number} height - of imageCanvas
  * @return {Object} the two eye-patches, first left, then right eye
  */
-TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, height, cameraFocalLenEstimation) {
+TFFaceMesh.prototype.getEyePatches = async function (video, imageCanvas, width, height, cameraFocalLenEstimation) {
   if (imageCanvas.width === 0) {
     return null;
   }
@@ -42,14 +42,14 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
 };
 
 
-TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, cameraFocalLenEstimation) {
-    // Load the MediaPipe facemesh model.
+TFFaceMesh.prototype.estimateOverImage = async function (video, imageCanvas, cameraFocalLenEstimation) {
+  // Load the MediaPipe facemesh model.
   const model = await this.model;
   // Pass in a video stream (or an image, canvas, or 3D tensor) to obtain an
   // array of detected faces from the MediaPipe graph.
   const predictions = await model.estimateFaces(video);
 
-  if (predictions.length == 0){
+  if (predictions.length == 0) {
     return false;
   }
   const { keypoints } = predictions[0];
@@ -90,18 +90,18 @@ TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, came
   //var outOfPlaneLR = outOfPlaneDetector.isOutOfPlaneLR(keypoints);
   //var outOfPlaneTB = outOfPlaneDetector.isOutOfPlaneTB(keypoints);
 
-	const leftEyeTopArcKeypoints = [
-		25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
-	];
-	const leftEyeBottomArcKeypoints = [
-		25, 110, 24, 23, 22, 26, 112, 243,
-	];
-	const rightEyeTopArcKeypoints = [
-		463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
-	];
-	const rightEyeBottomArcKeypoints = [
-		463, 341, 256, 252, 253, 254, 339, 255,
-	];
+  const leftEyeTopArcKeypoints = [
+    25, 33, 246, 161, 160, 159, 158, 157, 173, 243,
+  ];
+  const leftEyeBottomArcKeypoints = [
+    25, 110, 24, 23, 22, 26, 112, 243,
+  ];
+  const rightEyeTopArcKeypoints = [
+    463, 398, 384, 385, 386, 387, 388, 466, 263, 255,
+  ];
+  const rightEyeBottomArcKeypoints = [
+    463, 341, 256, 252, 253, 254, 339, 255,
+  ];
   const [leftBBox, rightBBox] = [
     // left
     {
@@ -138,33 +138,54 @@ TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, came
   var rightWidth = rightBBox.width;
   var rightHeight = rightBBox.height;
 
-  if (leftWidth === 0 || rightWidth === 0){
+  if (leftWidth === 0 || rightWidth === 0) {
     console.log('an eye patch had zero width');
     return null;
   }
 
-  if (leftHeight === 0 || rightHeight === 0){
+  if (leftHeight === 0 || rightHeight === 0) {
     console.log('an eye patch had zero height');
     return null;
   }
 
-	//var eyesBlinking = blinkDetector.isBlink(keypoints);
-	//if (eyesBlinking.left || eyesBlinking.right) {
-		//console.log(eyesBlinking);
-	//}
+  //var eyesBlinking = blinkDetector.isBlink(keypoints);
+  //if (eyesBlinking.left || eyesBlinking.right) {
+  //console.log(eyesBlinking);
+  //}
 
-	const rightEyeTopArc = rightEyeTopArcKeypoints.map(
-		point => keypoints[point]
-	);
-	const rightEyeBottomArc = rightEyeBottomArcKeypoints.map(
-		point => keypoints[point]
-	);
-	const leftEyeTopArc = leftEyeTopArcKeypoints.map(
-		point => keypoints[point]
-	);
-	const leftEyeBottomArc = leftEyeBottomArcKeypoints.map(
-		point => keypoints[point]
-	);
+  const rightEyeTopArc = rightEyeTopArcKeypoints.map(
+    point => {
+      return {
+        x: round(keypoints[point].x),
+        y: round(keypoints[point].y),
+        point: point
+      }
+    }
+  );
+  const rightEyeBottomArc = rightEyeBottomArcKeypoints.map(
+    point => {
+      return {
+        x: round(keypoints[point].x),
+        y: round(keypoints[point].y),
+        point: point
+      }
+    });
+  const leftEyeTopArc = leftEyeTopArcKeypoints.map(
+    point => {
+      return {
+        x: round(keypoints[point].x),
+        y: round(keypoints[point].y),
+        point: point
+      }
+    });
+  const leftEyeBottomArc = leftEyeBottomArcKeypoints.map(
+    point => {
+      return {
+        x: round(keypoints[point].x),
+        y: round(keypoints[point].y),
+        point: point
+      }
+    });
 
   // Start building object to be returned
   var eyeObjs = {};
@@ -175,7 +196,7 @@ TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, came
     imagey: leftOriginY,
     width: leftWidth,
     height: leftHeight,
-		isBlink: false,
+    isBlink: false,
     distanceToCamera: dZ
   };
 
@@ -186,37 +207,38 @@ TFFaceMesh.prototype.estimateOverImage = async function(video, imageCanvas, came
     imagey: rightOriginY,
     width: rightWidth,
     height: rightHeight,
-		isBlink: false,
+    isBlink: false,
     distanceToCamera: dZ
   };
 
   eyeObjs.importantKeypoints = {
-    noseX: keypoints[1].x,
-    noseY: keypoints[1].y,
-    topY: keypoints[10].y,
-    bottomY: keypoints[152].y,
-    leftEarX: keypoints[454].x,
-    rightearX: keypoints[234].x,
+    noseX: round(keypoints[1].x),
+    noseY: round(keypoints[1].y),
+    topY: round(keypoints[10].y),
+    bottomY: round(keypoints[152].y),
+    leftEarX: round(keypoints[454].x),
+    rightearX: round(keypoints[234].x),
     rightEyeTopArc: rightEyeTopArc,
     rightEyeBottomArc: rightEyeBottomArc,
     leftEyeTopArc: leftEyeTopArc,
     leftEyeBottomArc: leftEyeBottomArc
   }
-	//eyeObjs = blinkDetector.isBlink(eyeObjs);
-	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
-		//console.log(eyeObjs.left.isBlink);
-	//}
+  //eyeObjs = blinkDetector.isBlink(eyeObjs);
+  //if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
+  //console.log(eyeObjs.left.isBlink);
+  //}
   this.predictionReady = true;
 
   return eyeObjs;
 }
+
 
 /**
  * Isolates the two patches that correspond to the user's eyes
  * @param  {VideoFrame} videoFrame - Frame to use
  * @return {Object} the two eye-patches, first left, then right eye
  */
-TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
+TFFaceMesh.prototype.getEyePatchesForFrame = async function (videoFrame) {
   paintCurrentFrame(videoFrame, this.frameImageCanvas, videoFrame.codedWidth, videoFrame.codedHeight);
 
   var ctx = this.frameImageCanvas.getContext('2d');
@@ -236,14 +258,14 @@ TFFaceMesh.prototype.getPositions = function () {
 /**
  * Reset the tracker to default values
  */
-TFFaceMesh.prototype.reset = function(){
-  console.log( "Unimplemented; Tracking.js has no obvious reset function" );
+TFFaceMesh.prototype.reset = function () {
+  console.log("Unimplemented; Tracking.js has no obvious reset function");
 }
 
 /**
  * Draw TF_FaceMesh_Overlay
  */
-TFFaceMesh.prototype.drawFaceOverlay= function(ctx, keypoints){
+TFFaceMesh.prototype.drawFaceOverlay = function (ctx, keypoints) {
   // If keypoints is falsy, don't do anything
   if (keypoints) {
     ctx.fillStyle = '#32EEDB';
@@ -272,6 +294,10 @@ function paintCurrentFrame(videoFrame, canvas, width, height) {
 
   var ctx = canvas.getContext('2d');
   ctx.drawImage(videoFrame, 0, 0, canvas.width, canvas.height);
+}
+
+function round(num) {
+  return Math.round(num * 100) / 100;
 }
 
 /**

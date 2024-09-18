@@ -47,7 +47,7 @@ var latestGazeData = null;
 var paused = false;
 let sampling_interval = 34; // 34ms gives us arround 30fps
 //registered callback for loop
-var nopCallback = function(data, time) {};
+var nopCallback = function (data, time) { };
 var callback = nopCallback;
 
 //Types that regression systems should handle
@@ -63,12 +63,12 @@ var regs = [new webgazer.reg.RidgeReg()];
 
 //lookup tables
 var curTrackerMap = {
-  'TFFacemesh': function() { return new webgazer.tracker.TFFaceMesh(); },
+  'TFFacemesh': function () { return new webgazer.tracker.TFFaceMesh(); },
 };
 var regressionMap = {
-  'ridge': function() { return new webgazer.reg.RidgeReg(); },
-  'weightedRidge': function() { return new webgazer.reg.RidgeWeightedReg(); },
-  'threadedRidge': function() { return new webgazer.reg.RidgeRegThreaded(webgazer.workerScriptURL); },
+  'ridge': function () { return new webgazer.reg.RidgeReg(); },
+  'weightedRidge': function () { return new webgazer.reg.RidgeWeightedReg(); },
+  'threadedRidge': function () { return new webgazer.reg.RidgeRegThreaded(webgazer.workerScriptURL); },
 };
 
 //localstorage name
@@ -88,7 +88,7 @@ var defaults = {
  * Computes the size of the face overlay validation box depending on the size of the video preview window.
  * @returns {Object} The dimensions of the validation box as top, left, width, height.
  */
-webgazer.computeValidationBoxSize = function() {
+webgazer.computeValidationBoxSize = function () {
 
   var vw = videoElement.videoWidth;
   var vh = videoElement.videoHeight;
@@ -97,18 +97,18 @@ webgazer.computeValidationBoxSize = function() {
 
   // Find the size of the box.
   // Pick the smaller of the two video preview sizes
-  var smaller = Math.min( vw, vh );
-  var larger  = Math.max( vw, vh );
+  var smaller = Math.min(vw, vh);
+  var larger = Math.max(vw, vh);
 
   // Overall scalar
-  var scalar = ( vw == larger ? pw / vw : ph / vh );
+  var scalar = (vw == larger ? pw / vw : ph / vh);
 
   // Multiply this by 2/3, then adjust it to the size of the preview
   var boxSize = (smaller * webgazer.params.faceFeedbackBoxRatio) * scalar;
 
   // Set the boundaries of the face overlay validation box based on the preview
-  var topVal = (ph - boxSize)/2;
-  var leftVal = (pw - boxSize)/2;
+  var topVal = (ph - boxSize) / 2;
+  var leftVal = (pw - boxSize) / 2;
 
   // top, left, width, height
   return [topVal, leftVal, boxSize, boxSize]
@@ -126,12 +126,12 @@ function checkEyesInValidationBox() {
 
     // Find the size of the box.
     // Pick the smaller of the two video preview sizes
-    var smaller = Math.min( w, h );
+    var smaller = Math.min(w, h);
     var boxSize = smaller * webgazer.params.faceFeedbackBoxRatio;
 
     // Set the boundaries of the face overlay validation box based on the preview
-    var topBound = (h - boxSize)/2;
-    var leftBound = (w - boxSize)/2;
+    var topBound = (h - boxSize) / 2;
+    var leftBound = (w - boxSize) / 2;
     var rightBound = leftBound + boxSize;
     var bottomBound = topBound + boxSize;
 
@@ -164,7 +164,7 @@ function checkEyesInValidationBox() {
     //if the x and y values for both the left and right eye are within
     //the validation box then the box border turns green, otherwise if
     //the eyes are outside of the box the colour is red
-    if (xPositions && yPositions){
+    if (xPositions && yPositions) {
       faceFeedbackBox.style.border = 'solid green';
     } else {
       faceFeedbackBox.style.border = 'solid red';
@@ -180,7 +180,7 @@ function checkEyesInValidationBox() {
  * @param {x} x - The x co-ordinate of the desired point to plot
  * @param {y} y - The y co-ordinate of the desired point to plot
  */
-function drawCoordinates(colour,x,y){
+function drawCoordinates(colour, x, y) {
   var ctx = document.getElementById("plotting_canvas").getContext('2d');
   ctx.fillStyle = colour; // Red color
   ctx.beginPath();
@@ -201,7 +201,7 @@ function getPupilFeatures(video, canvas, width, height) {
   }
   try {
     return curTracker.getEyePatches(video, canvas, width, height, cameraFocalLenEstimation);
-  } catch(err) {
+  } catch (err) {
     console.log("can't get pupil features ", err);
     return null;
   }
@@ -251,7 +251,7 @@ async function eyePatchesEmissionLoop() {
 async function getPrediction(regModelIndex) {
   // this allows getPrediction to work even when webgazer is paused, since the only necessary
   // component for getPrediction in loop() is paintCurrentFrame().
-  if(paused){
+  if (paused) {
     paintCurrentFrame(videoElementCanvas, videoElementCanvas.width, videoElementCanvas.height);
   }
   var time = performance.now();
@@ -263,28 +263,28 @@ async function getPrediction(regModelIndex) {
     return null;
   }
   //for (var reg in regs) {
-    //predictions.push(regs[reg].predict(latestEyeFeatures));
+  //predictions.push(regs[reg].predict(latestEyeFeatures));
   //}
-	var blink = false;
-	if(latestEyeFeatures){
-		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
-	}
+  var blink = false;
+  if (latestEyeFeatures) {
+    blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
+  }
   if (regModelIndex !== undefined) {
     return /* predictions[regModelIndex] === null ? null :*/ {
-      'x' : 0,
-      'y' : 0,
+      'x': 0,
+      'y': 0,
       'eyeFeatures': latestEyeFeatures,
       'isBlink': blink,
-      't' : time
+      't': time
     };
   } else {
     return /*predictions.length === 0 || predictions[0] === null ? null :*/ {
-      'x' : 0,
-      'y' : 0,
+      'x': 0,
+      'y': 0,
       'eyeFeatures': latestEyeFeatures,
-      'all' : predictions,
+      'all': predictions,
       'isBlink': blink,
-      't' : time
+      't': time
     };
   }
 }
@@ -314,17 +314,16 @@ async function loop() {
 
 
     // Draw face overlay
-    if( webgazer.params.showFaceOverlay )
-    {
+    if (webgazer.params.showFaceOverlay) {
       // Get tracker object
       var tracker = webgazer.getTracker();
-      faceOverlay.getContext('2d').clearRect( 0, 0, videoElement.videoWidth, videoElement.videoHeight);
+      faceOverlay.getContext('2d').clearRect(0, 0, videoElement.videoWidth, videoElement.videoHeight);
       tracker.drawFaceOverlay(faceOverlay.getContext('2d'), tracker.getPositions());
     }
 
     // Feedback box
     // Check that the eyes are inside of the validation box
-    if( webgazer.params.showFaceFeedbackBox )
+    if (webgazer.params.showFaceFeedbackBox)
       checkEyesInValidationBox();
 
     latestGazeData = await latestGazeData;
@@ -332,7 +331,7 @@ async function loop() {
     // [20200623 xk] callback to function passed into setGazeListener(fn)
     callback(latestGazeData, elapsedTime);
 
-    if( latestGazeData ) {
+    if (latestGazeData) {
       // [20200608 XK] Smoothing across the most recent 4 predictions, do we need this with Kalman filter?
       smoothingVals.push(latestGazeData);
       var x = 0;
@@ -343,10 +342,10 @@ async function loop() {
         y += smoothingVals.get(d).y;
       }
 
-      var pred = webgazer.util.bound({'x':x/len, 'y':y/len});
+      var pred = webgazer.util.bound({ 'x': x / len, 'y': y / len });
 
       if (webgazer.params.storingPoints) {
-        drawCoordinates('blue',pred.x,pred.y); //draws the previous predictions
+        drawCoordinates('blue', pred.x, pred.y); //draws the previous predictions
         //store the position of the past fifty occuring tracker preditions
         webgazer.storePoints(pred.x, pred.y, k);
         k++;
@@ -378,7 +377,7 @@ async function loop() {
  * @param {String} eventType - The event type to store
  * @returns {null}
  */
-var recordScreenPosition = function(x, y, eventType) {
+var recordScreenPosition = function (x, y, eventType) {
   if (paused) {
     return;
   }
@@ -387,7 +386,7 @@ var recordScreenPosition = function(x, y, eventType) {
     return null;
   }
   for (var reg in regs) {
-    if( latestEyeFeatures ) {
+    if (latestEyeFeatures) {
       regs[reg].addData(latestEyeFeatures, [x, y], eventType);
     }
   }
@@ -397,7 +396,7 @@ var recordScreenPosition = function(x, y, eventType) {
  * Records click data and passes it to the regression model
  * @param {Event} event - The listened event
  */
-var clickListener = async function(event) {
+var clickListener = async function (event) {
   recordScreenPosition(event.clientX, event.clientY, eventTypes[0]); // eventType[0] === 'click'
 
   if (window.saveDataAcrossSessions) {
@@ -413,7 +412,7 @@ var clickListener = async function(event) {
  * Records mouse movement data and passes it to the regression model
  * @param {Event} event - The listened event
  */
-var moveListener = function(event) {
+var moveListener = function (event) {
   if (paused) {
     return;
   }
@@ -430,7 +429,7 @@ var moveListener = function(event) {
 /**
  * Add event listeners for mouse click and move.
  */
-var addMouseEventListeners = function() {
+var addMouseEventListeners = function () {
   //third argument set to true so that we get event on 'capture' instead of 'bubbling'
   //this prevents a client using event.stopPropagation() preventing our access to the click
   document.addEventListener('click', clickListener, true);
@@ -440,7 +439,7 @@ var addMouseEventListeners = function() {
 /**
  * Remove event listeners for mouse click and move.
  */
-var removeMouseEventListeners = function() {
+var removeMouseEventListeners = function () {
   // must set third argument to same value used in addMouseEventListeners
   // for this to work.
   document.removeEventListener('click', clickListener, true);
@@ -507,8 +506,8 @@ async function init(stream, options) {
   options = options || {};
   options.initializeMouseListeners =
     options.initializeMouseListeners === undefined
-    ? true
-    : options.initializeMouseListeners;
+      ? true
+      : options.initializeMouseListeners;
 
   //////////////////////////
   // Video and video preview
@@ -528,7 +527,7 @@ async function init(stream, options) {
   videoContainerElement.style.left = leftDist;
   videoContainerElement.style.width = webgazer.params.videoViewerWidth + 'px';
   videoContainerElement.style.height = webgazer.params.videoViewerHeight + 'px';
-  
+
   videoElement = document.createElement('video');
   videoElement.setAttribute('playsinline', '');
   videoElement.id = webgazer.params.videoElementId;
@@ -583,7 +582,7 @@ async function init(stream, options) {
   gazeDot.style.position = 'fixed';
   gazeDot.style.zIndex = 99999;
   gazeDot.style.left = '-5px'; //'-999em';
-  gazeDot.style.top  = '-5px';
+  gazeDot.style.top = '-5px';
   gazeDot.style.background = 'red';
   gazeDot.style.borderRadius = '100%';
   gazeDot.style.opacity = '0.7';
@@ -597,8 +596,8 @@ async function init(stream, options) {
     function setupPreviewVideo(e) {
 
       // All video preview parts have now been added, so set the size both internally and in the preview window.
-      setInternalVideoBufferSizes( videoElement.videoWidth, videoElement.videoHeight );
-      webgazer.setVideoViewerSize( webgazer.params.videoViewerWidth, webgazer.params.videoViewerHeight );
+      setInternalVideoBufferSizes(videoElement.videoWidth, videoElement.videoHeight);
+      webgazer.setVideoViewerSize(webgazer.params.videoViewerWidth, webgazer.params.videoViewerHeight);
 
       videoContainerElement.appendChild(videoElementCanvas);
       videoContainerElement.appendChild(faceOverlay);
@@ -631,14 +630,14 @@ async function init(stream, options) {
  * 
  * @return Promise 
  */
-function setUserMediaVariable(){
+function setUserMediaVariable() {
 
   if (navigator.mediaDevices === undefined) {
     navigator.mediaDevices = {};
   }
 
   if (navigator.mediaDevices.getUserMedia === undefined) {
-    navigator.mediaDevices.getUserMedia = function(constraints) {
+    navigator.mediaDevices.getUserMedia = function (constraints) {
 
       // gets the alternative old getUserMedia is possible
       var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -649,7 +648,7 @@ function setUserMediaVariable(){
       }
 
       // uses navigator.getUserMedia for older browsers
-      return new Promise(function(resolve, reject) {
+      return new Promise(function (resolve, reject) {
         getUserMedia.call(navigator, constraints, resolve, reject);
       });
     }
@@ -664,13 +663,13 @@ function setUserMediaVariable(){
  * @param {Function} onFail - Callback to call in case it is impossible to find user camera
  * @returns {*}
  */
-webgazer.begin = function(onFail, initOptions) {
+webgazer.begin = function (onFail, initOptions) {
   // Load model data stored in localforage.
   if (window.saveDataAcrossSessions) {
     loadGlobalData();
   }
 
-  onFail = onFail || function() {console.log('No stream')};
+  onFail = onFail || function () { console.log('No stream') };
 
   if (debugVideoLoc) {
     init(debugVideoLoc, initOptions);
@@ -688,37 +687,42 @@ webgazer.begin = function(onFail, initOptions) {
     let stream;
     try {
 
-      let features = { 
-        audio: true, 
-        video: { 
-            width: { ideal: 1800 }, 
-            height: { ideal: 900 } 
-        } 
-    }; 
-    
-    let display = await navigator.mediaDevices 
-        .getUserMedia(features); 
-    
-    // Returns a sequence of MediaStreamTrack objects  
-    // representing the video tracks in the stream 
-    
-    let settings = display.getVideoTracks()[0] 
-        .getSettings(); 
-    
-    let width = settings.width; 
-    let height = settings.height; 
-    cameraFocalLenEstimation = Math.min(width, height);
-   // console.log('Actual width of the camera video: ' 
-     //   + width + 'px'); 
-    //console.log('Actual height of the camera video:' 
+      /*  let features = { 
+          audio: true, 
+          video: { 
+              width: { ideal: 1800 }, 
+              height: { ideal: 900 } 
+          } 
+      }; 
+      
+      let display = await navigator.mediaDevices 
+          .getUserMedia(features); 
+      
+      // Returns a sequence of MediaStreamTrack objects  
+      // representing the video tracks in the stream 
+      
+      let settings = display.getVideoTracks()[0] 
+          .getSettings(); 
+      
+      let width = settings.width; 
+      let height = settings.height; 
+      cameraFocalLenEstimation = Math.min(width, height);*/
+      // console.log('Actual width of the camera video: ' 
+      //   + width + 'px'); 
+      //console.log('Actual height of the camera video:' 
       //  + height + 'px'); 
 
 
 
-      stream = await navigator.mediaDevices.getUserMedia( webgazer.params.camConstraints );
+      stream = await navigator.mediaDevices.getUserMedia(webgazer.params.camConstraints);
+      let settings = stream.getVideoTracks()[0].getSettings();
+      let width = settings.width;
+      let height = settings.height;
+      cameraFocalLenEstimation = Math.max(width, height);
+
       await init(stream, initOptions);
       resolve(webgazer);
-    } catch(err) {
+    } catch (err) {
       onFail();
       videoElement = null;
       stream = null;
@@ -733,7 +737,7 @@ webgazer.begin = function(onFail, initOptions) {
  * [20180729 JT] This seems like a bad idea for how this function should be implemented.
  * @returns {boolean} if webgazer is ready
  */
-webgazer.isReady = function() {
+webgazer.isReady = function () {
   if (videoElementCanvas === null) {
     return false;
   }
@@ -744,7 +748,7 @@ webgazer.isReady = function() {
  * Stops collection of data and predictions
  * @returns {webgazer} this
  */
-webgazer.pause = function() {
+webgazer.pause = function () {
   paused = true;
   return webgazer;
 };
@@ -753,7 +757,7 @@ webgazer.pause = function() {
  * Resumes collection of data and predictions if paused
  * @returns {webgazer} this
  */
-webgazer.resume = async function() {
+webgazer.resume = async function () {
   if (!paused) {
     return webgazer;
   }
@@ -766,7 +770,7 @@ webgazer.resume = async function() {
  * stops collection of data and removes dom modifications, must call begin() to reset up
  * @return {webgazer} this
  */
-webgazer.end = function() {
+webgazer.end = function () {
   //loop may run an extra time and fail due to removed elements
   paused = true;
 
@@ -783,15 +787,15 @@ webgazer.end = function() {
  * Stops the video camera from streaming and removes the video outlines
  * @return {webgazer} this
  */
-webgazer.stopVideo = function() {
+webgazer.stopVideo = function () {
   // Stops the video from streaming
   videoStream.getTracks()[0].stop();
 
   // Removes the outline of the face
-  document.body.removeChild( faceOverlay );
+  document.body.removeChild(faceOverlay);
 
   // Removes the box around the face
-  document.body.removeChild( faceFeedbackBox );
+  document.body.removeChild(faceFeedbackBox);
 
   return webgazer;
 }
@@ -803,7 +807,7 @@ webgazer.stopVideo = function() {
  * Returns if the browser is compatible with webgazer
  * @return {boolean} if browser is compatible
  */
-webgazer.detectCompatibility = function() {
+webgazer.detectCompatibility = function () {
 
   var getUserMedia = navigator.mediaDevices.getUserMedia ||
     navigator.getUserMedia ||
@@ -820,7 +824,7 @@ webgazer.detectCompatibility = function() {
  * @param {bool} val
  * @return {webgazer} this
  */
-webgazer.showVideoPreview = function(val) {
+webgazer.showVideoPreview = function (val) {
   webgazer.params.showVideoPreview = val;
   webgazer.showVideo(val && webgazer.params.showVideo);
   webgazer.showFaceOverlay(val && webgazer.params.showFaceOverlay);
@@ -833,12 +837,12 @@ webgazer.showVideoPreview = function(val) {
  * @param {*} bool
  * @return {webgazer} this
  */
-webgazer.showVideo = function(val) {
+webgazer.showVideo = function (val) {
   webgazer.params.showVideo = val;
-  if(videoElement) {
+  if (videoElement) {
     videoElement.style.display = val ? 'block' : 'none';
   }
-  if(videoContainerElement) {
+  if (videoContainerElement) {
     videoContainerElement.style.display = val ? 'block' : 'none';
   }
   return webgazer;
@@ -849,9 +853,9 @@ webgazer.showVideo = function(val) {
  * @param {*} bool
  * @return {webgazer} this
  */
-webgazer.showFaceOverlay = function(val) {
+webgazer.showFaceOverlay = function (val) {
   webgazer.params.showFaceOverlay = val;
-  if( faceOverlay ) {
+  if (faceOverlay) {
     faceOverlay.style.display = val ? 'block' : 'none';
   }
   return webgazer;
@@ -862,10 +866,10 @@ webgazer.showFaceOverlay = function(val) {
  * @param {*} bool
  * @return {webgazer} this
  */
-webgazer.showFaceFeedbackBox = function(val) {
+webgazer.showFaceFeedbackBox = function (val) {
 
   webgazer.params.showFaceFeedbackBox = val;
-  if( faceFeedbackBox ) {
+  if (faceFeedbackBox) {
     faceFeedbackBox.style.display = val ? 'block' : 'none';
   }
   return webgazer;
@@ -876,9 +880,9 @@ webgazer.showFaceFeedbackBox = function(val) {
  * Multiple because of a trail of past dots. Default true
  * @return {webgazer} this
  */
-webgazer.showPredictionPoints = function(val) {
+webgazer.showPredictionPoints = function (val) {
   webgazer.params.showGazeDot = val;
-  if( gazeDot ) {
+  if (gazeDot) {
     gazeDot.style.display = val ? 'block' : 'none';
   }
   return webgazer;
@@ -888,7 +892,7 @@ webgazer.showPredictionPoints = function(val) {
  * Set whether a Kalman filter will be applied to gaze predictions (default true);
  * @return {webgazer} this
  */
-webgazer.applyKalmanFilter = function(val) {
+webgazer.applyKalmanFilter = function (val) {
   webgazer.params.applyKalmanFilter = val;
   return webgazer;
 }
@@ -906,26 +910,25 @@ webgazer.applyKalmanFilter = function(val) {
  * Note: The constraints set here are applied to the video track only. They also _replace_ any constraints, so be sure to set everything you need.
  * Warning: Setting a large video resolution will decrease performance, and may require
  */
-webgazer.setCameraConstraints = async function(constraints) {
-  var videoTrack,videoSettings;
+webgazer.setCameraConstraints = async function (constraints) {
+  var videoTrack, videoSettings;
   webgazer.params.camConstraints = constraints;
 
   // If the camera stream is already up...
-  if(videoStream)
-  {
+  if (videoStream) {
     webgazer.pause();
     videoTrack = videoStream.getVideoTracks()[0];
     try {
-      await videoTrack.applyConstraints( webgazer.params.camConstraints );
+      await videoTrack.applyConstraints(webgazer.params.camConstraints);
       videoSettings = videoTrack.getSettings();
-      setInternalVideoBufferSizes( videoSettings.width, videoSettings.height );
-    } catch(err) {
-      console.log( err );
+      setInternalVideoBufferSizes(videoSettings.width, videoSettings.height);
+    } catch (err) {
+      console.log(err);
       return;
     }
     // Reset and recompute sizes of the video viewer.
     // This is only to adjust the feedback box, say, if the aspect ratio of the video has changed.
-    webgazer.setVideoViewerSize( webgazer.params.videoViewerWidth, webgazer.params.videoViewerHeight )
+    webgazer.setVideoViewerSize(webgazer.params.videoViewerWidth, webgazer.params.videoViewerHeight)
     webgazer.getTracker().reset();
     await webgazer.resume();
   }
@@ -937,17 +940,15 @@ webgazer.setCameraConstraints = async function(constraints) {
  * @param {*} width
  * @param {*} height
  */
-function setInternalVideoBufferSizes( width, height ) {
+function setInternalVideoBufferSizes(width, height) {
   // Re-set the canvas size used by the internal processes
-  if( videoElementCanvas )
-  {
+  if (videoElementCanvas) {
     videoElementCanvas.width = width;
     videoElementCanvas.height = height;
   }
 
   // Re-set the face overlay canvas size
-  if( faceOverlay )
-  {
+  if (faceOverlay) {
     faceOverlay.width = width;
     faceOverlay.height = height;
   }
@@ -958,7 +959,7 @@ function setInternalVideoBufferSizes( width, height ) {
  *  @param {String} videoLoc - video file location
  *  @return {webgazer} this
  */
-webgazer.setStaticVideo = function(videoLoc) {
+webgazer.setStaticVideo = function (videoLoc) {
   debugVideoLoc = videoLoc;
   return webgazer;
 };
@@ -966,7 +967,7 @@ webgazer.setStaticVideo = function(videoLoc) {
 /**
  * Set the size of the video viewer
  */
-webgazer.setVideoViewerSize = function(w, h) {
+webgazer.setVideoViewerSize = function (w, h) {
 
   webgazer.params.videoViewerWidth = w;
   webgazer.params.videoViewerHeight = h;
@@ -993,7 +994,7 @@ webgazer.setVideoViewerSize = function(w, h) {
  *  Add the mouse click and move listeners that add training data.
  *  @return {webgazer} this
  */
-webgazer.addMouseEventListeners = function() {
+webgazer.addMouseEventListeners = function () {
   addMouseEventListeners();
   return webgazer;
 };
@@ -1002,7 +1003,7 @@ webgazer.addMouseEventListeners = function() {
  *  Remove the mouse click and move listeners that add training data.
  *  @return {webgazer} this
  */
-webgazer.removeMouseEventListeners = function() {
+webgazer.removeMouseEventListeners = function () {
   removeMouseEventListeners();
   return webgazer;
 };
@@ -1013,7 +1014,7 @@ webgazer.removeMouseEventListeners = function() {
  *  @param {String} y - position on screen in the y axis
  *  @return {webgazer} this
  */
-webgazer.recordScreenPosition = function(x, y) {
+webgazer.recordScreenPosition = function (x, y) {
   // give this the same weight that a click gets.
   recordScreenPosition(x, y, eventTypes[0]);
   return webgazer;
@@ -1026,7 +1027,7 @@ webgazer.recordScreenPosition = function(x, y) {
  *  @param {String} eventType - "click" or "move", as per eventTypes
  *  @return {webgazer} this
  */
-webgazer.recordScreenPosition = function(x, y, eventType) {
+webgazer.recordScreenPosition = function (x, y, eventType) {
   // give this the same weight that a click gets.
   recordScreenPosition(x, y, eventType);
   return webgazer;
@@ -1035,7 +1036,7 @@ webgazer.recordScreenPosition = function(x, y, eventType) {
 /*
  * Stores the position of the fifty most recent tracker preditions
  */
-webgazer.storePoints = function(x, y, k) {
+webgazer.storePoints = function (x, y, k) {
   xPast50[k] = x;
   yPast50[k] = y;
 }
@@ -1046,7 +1047,7 @@ webgazer.storePoints = function(x, y, k) {
  * @param {String} name - The name of the tracking module to use
  * @return {webgazer} this
  */
-webgazer.setTracker = function(name) {
+webgazer.setTracker = function (name) {
   if (curTrackerMap[name] === undefined) {
     console.log('Invalid tracker selection');
     console.log('Options are: ');
@@ -1064,7 +1065,7 @@ webgazer.setTracker = function(name) {
  * @param {String} name - The name of the regression module to use
  * @return {webgazer} this
  */
-webgazer.setRegression = function(name) {
+webgazer.setRegression = function (name) {
   if (regressionMap[name] === undefined) {
     console.log('Invalid regression selection');
     console.log('Options are: ');
@@ -1085,8 +1086,8 @@ webgazer.setRegression = function(name) {
  * @param {Function} constructor - the constructor of the curTracker object
  * @return {webgazer} this
  */
-webgazer.addTrackerModule = function(name, constructor) {
-  curTrackerMap[name] = function() {
+webgazer.addTrackerModule = function (name, constructor) {
+  curTrackerMap[name] = function () {
     return new constructor();
   };
 };
@@ -1096,8 +1097,8 @@ webgazer.addTrackerModule = function(name, constructor) {
  * @param {String} name - the new name of the regression
  * @param {Function} constructor - the constructor of the regression object
  */
-webgazer.addRegressionModule = function(name, constructor) {
-  regressionMap[name] = function() {
+webgazer.addRegressionModule = function (name, constructor) {
+  regressionMap[name] = function () {
     return new constructor();
   };
 };
@@ -1107,7 +1108,7 @@ webgazer.addRegressionModule = function(name, constructor) {
  * @param {String} name - the string name of the regression module to add
  * @return {webgazer} this
  */
-webgazer.addRegression = function(name) {
+webgazer.addRegression = function (name) {
   var newReg = regressionMap[name]();
   data = regs[0].getData();
   newReg.setData(data);
@@ -1120,7 +1121,7 @@ webgazer.addRegression = function(name) {
  * @param {function} listener - The callback function to call (it must be like function(data, elapsedTime))
  * @return {webgazer} this
  */
-webgazer.setGazeListener = function(listener) {
+webgazer.setGazeListener = function (listener) {
   callback = listener;
   return webgazer;
 };
@@ -1129,7 +1130,7 @@ webgazer.setGazeListener = function(listener) {
  * Removes the callback set by setGazeListener
  * @return {webgazer} this
  */
-webgazer.clearGazeListener = function() {
+webgazer.clearGazeListener = function () {
   callback = nopCallback;
   return webgazer;
 };
@@ -1138,14 +1139,14 @@ webgazer.clearGazeListener = function() {
  * Set the video element canvas; useful if you want to run WebGazer on your own canvas (e.g., on any random image).
  * @return The current video element canvas
  */
-webgazer.setVideoElementCanvas = function(canvas) {
+webgazer.setVideoElementCanvas = function (canvas) {
   videoElementCanvas = canvas;
 }
 
 /**
  * Clear data from localforage and from regs
  */
-webgazer.clearData = async function() {
+webgazer.clearData = async function () {
   clearData();
 }
 
@@ -1155,7 +1156,7 @@ webgazer.clearData = async function() {
  * Returns the tracker currently in use
  * @return {tracker} an object following the tracker interface
  */
-webgazer.getTracker = function() {
+webgazer.getTracker = function () {
   return curTracker;
 };
 
@@ -1163,7 +1164,7 @@ webgazer.getTracker = function() {
  * Returns the regression currently in use
  * @return {Array.<Object>} an array of regression objects following the regression interface
  */
-webgazer.getRegression = function() {
+webgazer.getRegression = function () {
   return regs;
 };
 
@@ -1171,7 +1172,7 @@ webgazer.getRegression = function() {
  * Requests an immediate prediction
  * @return {object} prediction data object
  */
-webgazer.getCurrentPrediction = function() {
+webgazer.getCurrentPrediction = function () {
   return getPrediction();
 };
 
@@ -1179,7 +1180,7 @@ webgazer.getCurrentPrediction = function() {
  * returns the different event types that may be passed to regressions when calling regression.addData()
  * @return {Array} array of strings where each string is an event type
  */
-webgazer.params.getEventTypes = function() {
+webgazer.params.getEventTypes = function () {
   return eventTypes.slice();
 }
 
@@ -1187,31 +1188,31 @@ webgazer.params.getEventTypes = function() {
  * Get the video element canvas that WebGazer uses internally on which to run its face tracker.
  * @return The current video element canvas
  */
-webgazer.getVideoElementCanvas = function() {
+webgazer.getVideoElementCanvas = function () {
   return videoElementCanvas;
 }
 
 /**
  * @return array [a,b] where a is width ratio and b is height ratio
  */
-webgazer.getVideoPreviewToCameraResolutionRatio = function() {
+webgazer.getVideoPreviewToCameraResolutionRatio = function () {
   return [webgazer.params.videoViewerWidth / videoElement.videoWidth, webgazer.params.videoViewerHeight / videoElement.videoHeight];
 }
 
 /*
  * Gets the fifty most recent tracker preditions
  */
-webgazer.getStoredPoints = function() {
+webgazer.getStoredPoints = function () {
   return [xPast50, yPast50];
 }
 
-webgazer.computeRegressionCoefficients = function() {
+webgazer.computeRegressionCoefficients = function () {
   for (var reg in regs) {
     regs[reg].computeCoefficients();
   }
 }
 
-webgazer.eyePatchesForFrame = async function(videoFrame) {
+webgazer.eyePatchesForFrame = async function (videoFrame) {
   latestEyeFeatures = await curTracker.getEyePatchesForFrame(videoFrame);
   document.dispatchEvent(new CustomEvent('webgazer:eye-features-update', {
     detail: latestEyeFeatures

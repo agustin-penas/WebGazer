@@ -75,13 +75,12 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   var fx = cameraFocalLenEstimation // Math.min(video.videoWidth, video.videoHeight) * normalizedFocaleX;
   var dZ = (fx * (dX / dx)) / 10.0;
   dZ = dZ.toFixed(2);
-  console.log(dZ + " cm");
-  console.log(fx)
+  //console.log(dZ + " cm");
+  //console.log(fx)
 
   // Save positions to global variable
   this.positionsArray = keypoints;
   const positions = this.positionsArray;
-  //console.log("keypoint 160: " + keypoints[160].z);
   var outOfPlane = outOfPlaneDetector.isOutOfPlane(keypoints);
 
 	const leftEyeTopArcKeypoints = [
@@ -143,9 +142,6 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
   }
 
 	var eyesBlinking = blinkDetector.isBlink(keypoints);
-	if (eyesBlinking.left || eyesBlinking.right) {
-		//console.log(eyesBlinking);
-	}
 
   // Start building object to be returned
   var eyeObjs = {};
@@ -157,7 +153,8 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     width: leftWidth,
     height: leftHeight,
 		isBlink: eyesBlinking.left,
-    outOfPlane: outOfPlane
+    outOfPlane: outOfPlane,
+    dz: dZ
   };
 
   var rightImageData = imageCanvas.getContext('2d').getImageData(rightOriginX, rightOriginY, rightWidth, rightHeight);
@@ -168,12 +165,10 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
     width: rightWidth,
     height: rightHeight,
 		isBlink: eyesBlinking.right,
-    outOfPlane: outOfPlane
+    outOfPlane: outOfPlane,
+    dz: dZ
   };
-	//eyeObjs = blinkDetector.isBlink(eyeObjs);
-	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
-		//console.log(eyeObjs.left.isBlink);
-	//}
+
   this.predictionReady = true;
 
   return eyeObjs;
@@ -181,7 +176,7 @@ TFFaceMesh.prototype.getEyePatches = async function(video, imageCanvas, width, h
 
 
 /**
- * Isolates the two patches that correspond to the user's eyes
+ * Isolates the two patches that correspond to the user's eyes for a single frame
  * @param  {VideoFrame} videoFrame - Frame to use
  * @return {Object} the two eye-patches, first left, then right eye
  */
@@ -283,8 +278,9 @@ TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
     width: leftWidth,
     height: leftHeight,
 		isBlink: eyesBlinking.left,
-    outOfPlane: outOfPlane
-  };
+    outOfPlane: outOfPlane,
+    dz: 0
+    };
 
   var rightImageData = this.frameImageCanvas.getContext('2d').getImageData(rightOriginX, rightOriginY, rightWidth, rightHeight);
   eyeObjs.right = {
@@ -294,12 +290,10 @@ TFFaceMesh.prototype.getEyePatchesForFrame = async function(videoFrame) {
     width: rightWidth,
     height: rightHeight,
 		isBlink: eyesBlinking.right,
-    outOfPlane: outOfPlane
-  };
-	//eyeObjs = blinkDetector.isBlink(eyeObjs);
-	//if (eyeObjs.left.isBlink || eyeObjs.right.isBlink) {
-		//console.log(eyeObjs.left.isBlink);
-	//}
+    outOfPlane: outOfPlane,
+    dz: 0
+    };
+
   this.predictionReady = true;
 
   return eyeObjs;

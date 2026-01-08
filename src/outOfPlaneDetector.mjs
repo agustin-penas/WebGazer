@@ -2,9 +2,6 @@ const outOfPlaneDetector = {};
 
 outOfPlaneDetector.isOutOfPlane = function( keypoints ) {
   var outOfPlane = false;
-  if (keypoints[160].z > 20 || keypoints[160].z < -20) {
-    //outOfPlane = true;
-  }
 
   const noseX = keypoints[1].x;
   const noseY = keypoints[1].y;
@@ -21,19 +18,14 @@ outOfPlaneDetector.isOutOfPlane = function( keypoints ) {
   const distanceToLeft = leftEarX - noseX;
   const distanceToRight = noseX - rightearX;
 
-  if (distanceToLeft < (0.5*distanceToRight) || distanceToRight < (0.5*distanceToLeft)) {
+  if (distanceToLeft < (0.53*distanceToRight) || distanceToRight < (0.53*distanceToLeft)) {
     outOfPlane = true;
   }
 
-  if (distanceToTop < (0.8*distanceToBottom) || distanceToBottom < (0.8*distanceToTop)) {
+  if (distanceToTop < (0.53*distanceToBottom) || distanceToBottom < (0.53*distanceToTop)) {
     outOfPlane = true;
   }
-/*
-  console.log("distance nose to top: " + (noseY - topY));
-  console.log("distance nose to bottom: " + (bottomY - noseY));
-  console.log("distance nose to right: " + (noseX - rightearX));
-  console.log("distance nose to left: " + (leftEarX - noseX));
-*/
+
   return outOfPlane;
 }
 

@@ -266,15 +266,22 @@ async function getPrediction(regModelIndex) {
     predictions.push(regs[reg].predict(latestEyeFeatures));
   }
 	var blink = false;
+  var outOfPlane = false;
+  var dz = 0
 	if(latestEyeFeatures){
 		blink = latestEyeFeatures.left.isBlink || latestEyeFeatures.right.isBlink
+		outOfPlane = latestEyeFeatures.left.outOfPlane || latestEyeFeatures.right.outOfPlane
+		dz = latestEyeFeatures.right.dz
 	}
+
   if (regModelIndex !== undefined) {
     return predictions[regModelIndex] === null ? null : {
       'x' : predictions[regModelIndex].x,
       'y' : predictions[regModelIndex].y,
       'eyeFeatures': latestEyeFeatures,
       'isBlink': blink,
+      'outOfPlane': outOfPlane,
+      'dz': dz,
       't' : time
     };
   } else {
@@ -284,6 +291,8 @@ async function getPrediction(regModelIndex) {
       'eyeFeatures': latestEyeFeatures,
       'all' : predictions,
       'isBlink': blink,
+      'outOfPlane': outOfPlane,
+      'dz': dz,
       't' : time
     };
   }
